@@ -1,11 +1,11 @@
 // All of the Node.js APIs are available in the preload process.
 // It has the same sandbox as a Chrome extension.
-const { ipcRenderer, contextBridge } = require("electron");
-const api = require("./api");
+import { ipcRenderer, contextBridge } from "electron";
+import { API } from "./api";
 
-const apiGrouped = {};
+const apiGrouped: { [name: string]: { [name: string]: (...args: any[]) => Promise<any> } } = {};
 
-Object.keys(api).forEach((k) => {
+Object.keys(API).forEach((k) => {
   const split = k.split(":");
 
   if (split.length !== 2) {
@@ -18,15 +18,13 @@ Object.keys(api).forEach((k) => {
   }
 
   const map = apiGrouped[split[0]];
-  map[split[1]] = (args) => ipcRenderer.invoke(k, args);
+  map[split[1]] = (...args: any[]) => ipcRenderer.invoke(k, args);
 });
 
-for (let k of Object.keys(apiGrouped)) {
-  contextBridge.exposeInMainWorld(k, apiGrouped[k]);
-}
+contextBridge.exposeInMainWorld("api", apiGrouped);
 
 window.addEventListener("DOMContentLoaded", () => {
-  const replaceText = (selector, text) => {
+  const replaceText = (selector: string, text: string) => {
     const element = document.getElementById(selector);
     if (element != null) {
       element.innerText = text;
@@ -34,6 +32,6 @@ window.addEventListener("DOMContentLoaded", () => {
   };
 
   for (const dependency of ["chrome", "node", "electron"]) {
-    replaceText(`${dependency}-version`, process.versions[dependency]);
+    replaceText(`${dependency}-version`, process.versions[dependency]!);
   }
 });

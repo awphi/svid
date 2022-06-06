@@ -4,6 +4,10 @@ import tailwindcss from "tailwindcss";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: process.env.ELECTRON == "true" ? "./" : ".",
+  base: process.env.ELECTRON == "true" ? "./" : "",
+  root: "src/ui",
+  build: {
+    outDir: "../../out/ui",
+  },
   plugins: [vue(), tailwindcss()],
 });

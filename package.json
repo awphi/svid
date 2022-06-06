@@ -5,15 +5,15 @@
   "version": "0.0.1",
   "description": "sVid - Minimal subtitle-focused video player.",
   "license": "MIT",
-  "main": "electron/main.js",
+  "main": "out/main.js",
   "scripts": {
-    "build": "vue-tsc --noEmit && vite build",
-    "serve": "vite preview",
-    "electron:pack": "electron-builder --dir",
-    "electron:dev": "concurrently -k \"cross-env BROWSER=none vite\" \"cross-env IS_DEV=true electron .\"",
-    "electron:builder": "electron-builder",
-    "build:for:electron": "vue-tsc --noEmit && cross-env ELECTRON=true vite build",
-    "app:build": "yarn build:for:electron && yarn electron:builder"
+    "electron:dev": "concurrently -k \"tsc -w\" \"cross-env IS_DEV=true electron .\"",
+    "vue:dev": "cross-env BROWSER=none vite",
+    "app:dev": "concurrently -k \"npm run vue:dev\" \"npm run electron:dev\"",
+    "electron:pack": "tsc && electron-builder --dir",
+    "electron:build": "tsc && electron-builder",
+    "vue:build": "vue-tsc --noEmit && cross-env ELECTRON=true vite build",
+    "app:build": "npm run vue:build && npm run electron:build"
   },
   "dependencies": {
     "electron-reload": "^2.0.0-alpha.1",
@@ -31,11 +31,11 @@
       "allowToChangeInstallationDirectory": true
     },
     "files": [
-      "dist/**/*"
+      "out/**/*",
     ],
     "directories": {
       "buildResources": "assets",
-      "output": "dist_electron"
+      "output": "dist"
     }
   },
   "devDependencies": {
