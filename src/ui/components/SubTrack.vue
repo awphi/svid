@@ -2,7 +2,8 @@
 </script>
 
 <template>
-  <div>Sub Track</div>
+  <div class="bg-zinc-500 bg-opacity-90 flex-1 w-full ">
+  </div>
 </template>
 
 <style>

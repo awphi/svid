@@ -31,7 +31,7 @@
       "allowToChangeInstallationDirectory": true
     },
     "files": [
-      "out/**/*",
+      "out/**/*"
     ],
     "directories": {
       "buildResources": "assets",

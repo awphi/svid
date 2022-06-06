@@ -5,8 +5,11 @@ import SubTrackVue from './components/SubTrack.vue';
 </script>
 
 <template>
-  <SourceSelectorVue class="w-1/5" />
-  <div class="flex-col flex-1">
+  <div class="bg-zinc-500 flex flex-col w-1/5 ">
+    <SourceSelectorVue :title="'Videos'" />
+    <SourceSelectorVue :title="'Subtitles'" />
+  </div>
+  <div class="flex flex-col flex-1 h-full">
     <VideoPlayerVue />
     <SubTrackVue />
   </div>
@@ -16,22 +19,6 @@ import SubTrackVue from './components/SubTrack.vue';
 #app {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  @apply bg-main;
-}
-
-button {
-  @apply bg-highlight;
-}
-
-p {
-  @apply text-paragraph;
-}
-
-h1,
-h2,
-h3,
-h4 {
-  @apply text-headline;
 }
 
 html,

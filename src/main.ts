@@ -12,6 +12,7 @@ function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 1366,
     height: 768,
+    title: 'sVid',
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: true,

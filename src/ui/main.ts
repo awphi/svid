@@ -8,4 +8,14 @@ declare global {
   interface Window {
     api: any;
   }
+
+  interface Folder {
+    name: string;
+    files: FilePath[];
+  }
+
+  interface FilePath {
+    name: string;
+    exactPath: string;
+  }
 }
