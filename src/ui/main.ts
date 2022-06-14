@@ -9,6 +9,7 @@ declare global {
     api: any;
   }
 
+  // TODO redo this to work with dirTree
   interface Folder {
     name: string;
     files: FilePath[];

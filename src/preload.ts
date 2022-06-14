@@ -17,10 +17,10 @@ Object.keys(API).forEach((k) => {
     apiGrouped[split[0]] = {};
   }
 
-  const map = apiGrouped[split[0]];
-  map[split[1]] = (...args: any[]) => ipcRenderer.invoke(k, args);
+  apiGrouped[split[0]][split[1]] = (...args: any[]) => ipcRenderer.invoke(k, ...args);
 });
 
+console.log(apiGrouped);
 contextBridge.exposeInMainWorld("api", apiGrouped);
 
 window.addEventListener("DOMContentLoaded", () => {

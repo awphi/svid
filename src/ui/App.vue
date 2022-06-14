@@ -5,9 +5,9 @@ import SubTrackVue from './components/SubTrack.vue';
 </script>
 
 <template>
-  <div class="bg-zinc-500 flex flex-col w-1/5 ">
-    <SourceSelectorVue :title="'Videos'" />
-    <SourceSelectorVue :title="'Subtitles'" />
+  <div class="bg-zinc-500 flex flex-col w-1/4 ">
+    <SourceSelectorVue class="h-1/2" :title="'Videos'" />
+    <SourceSelectorVue class="h-1/2" :title="'Subtitles'" />
   </div>
   <div class="flex flex-col flex-1 h-full">
     <VideoPlayerVue />

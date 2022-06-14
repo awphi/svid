@@ -16,6 +16,7 @@
     "app:build": "npm run vue:build && npm run electron:build"
   },
   "dependencies": {
+    "directory-tree": "^3.3.0",
     "electron-reload": "^2.0.0-alpha.1",
     "vue": "^3.2.25"
   },
