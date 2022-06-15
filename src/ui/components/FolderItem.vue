@@ -7,12 +7,21 @@ const props = defineProps<{
   level: number
 }>()
 
-
 const isFolder = computed(() => props.item.type === "directory");
+const isHidden = computed(() => props.item.extension === '')
 const isOpen = ref(false);
 
+const emit = defineEmits(['clicked']);
+
+function clicked(node: DirectoryTree | null): void {
+  if (node !== null) {
+    emit('clicked', node);
+  } else if (!isFolder.value && !isHidden.value) {
+    emit('clicked', props.item);
+  }
+}
+
 function toggle(): void {
-  console.log(isFolder, isOpen)
   if (isFolder) {
     isOpen.value = !isOpen.value;
   }
@@ -21,9 +30,10 @@ function toggle(): void {
 </script>
 
 <template>
-  <div v-if="item.extension !== ''" class="w-full" :style="{ 'paddingLeft': `${level * 15}px` }">
-    <div class="flex items-center text-ellipsis" :class="{ 'font-bold': isFolder }">
-      <!-- TODO fix text not clipping-->
+
+  <div v-if="!isHidden" class="overflow-x-hidden" :class="{ 'cursor-pointer': !isFolder }"
+    :style="{ 'paddingLeft': `${level * 15}px` }">
+    <div @click="clicked(null)" class="flex items-center" :class="{ 'font-bold': isFolder }">
       <h2 class="whitespace-nowrap">{{ item.name }}</h2>
       <div v-if="isFolder" class="flex-1"></div>
       <button @click="toggle" v-if="isFolder" class="flex items-center justify-center rounded-md h-5 w-5 bg-zinc-600">{{
@@ -34,7 +44,8 @@ function toggle(): void {
     </div>
     <hr class=" border-black opacity-10" v-if="isFolder" />
     <div v-show="isOpen" v-if="isFolder">
-      <FolderItem v-for="(child, index) in item.children" :level="level + 1" :key="index" :item="child" />
+      <FolderItem @clicked="(t) => clicked(t)" v-for="(child, index) in item.children" :level="level + 1" :key="index"
+        :item="child" />
     </div>
   </div>
 </template>

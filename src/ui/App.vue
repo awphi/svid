@@ -12,6 +12,10 @@ import SubTrackVue from './components/SubTrack.vue';
   <div class="flex flex-col flex-1 h-full">
     <VideoPlayerVue />
     <SubTrackVue />
+    <div class="w-full px-1 h-6 flex bg-zinc-500">
+      <h1 class="flex-1">Adam</h1>
+      <h1 class="flex-1">Adam</h1>
+    </div>
   </div>
 </template>
 
