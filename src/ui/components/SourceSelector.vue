@@ -25,7 +25,7 @@ const trees: DirectoryTree[] = [
     </div>
 
     <div class="flex flex-col w-full flex-1 px-2 py-1 overflow-auto">
-      <FolderItem v-for="tree in trees" :item="tree" />
+      <FolderItem :level="0" v-for="tree in trees" :item="tree" />
     </div>
   </div>
 </template>
