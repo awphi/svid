@@ -10,14 +10,13 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits(['selectionChanged']);
-const selection: Ref<DirectoryTree | undefined> = ref(undefined);
 
 // has to be in an object to prevent the template unwrapping it :(
-const refs = {
-  selection: selection
+const refs: { selection: Ref<DirectoryTree | undefined> } = {
+  selection: ref(undefined)
 };
 
-watch(selection, (sel, prevSel) =>
+watch(refs.selection, (sel, prevSel) =>
   emits('selectionChanged', sel, prevSel)
 );
 
