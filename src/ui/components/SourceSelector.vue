@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DirectoryTree } from 'directory-tree';
 import FolderItem from './FolderItem.vue';
+import { defineEmits, Ref, ref, watch } from 'vue';
 
 import data from './data.json';
 
@@ -8,14 +9,22 @@ const props = defineProps<{
   title: string
 }>();
 
+const emits = defineEmits(['selectionChanged']);
+const selection: Ref<DirectoryTree | undefined> = ref(undefined);
+
+// has to be in an object to prevent the template unwrapping it :(
+const refs = {
+  selection: selection
+};
+
+watch(selection, (sel, prevSel) =>
+  emits('selectionChanged', sel, prevSel)
+);
+
 // TODO dynamic tree from dialog selections saved in user prefs or whatever...
 const trees: DirectoryTree[] = [
   data as DirectoryTree
 ];
-
-function test(e: any) {
-  console.log(e);
-}
 
 </script>
 
@@ -29,7 +38,7 @@ function test(e: any) {
 
     <div class="flex flex-col w-full flex-1 overflow-y-scroll">
       <div class="px-2 py-1 text-gray-100">
-        <FolderItem @clicked="test" :level="0" v-for="tree in trees" :item="tree" />
+        <FolderItem :selection="refs.selection" :level="0" v-for="tree in trees" :item="tree" />
       </div>
     </div>
   </div>
