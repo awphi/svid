@@ -9,9 +9,8 @@ import { FileFilter } from 'electron';
 const selectedVideo: Ref<DirectoryTree | undefined> = ref(undefined);
 const selectedSubs: Ref<DirectoryTree | undefined> = ref(undefined);
 
-const videoFilters: FileFilter[] = [{ name: 'Select Video', extensions: ['mp4', 'mkv'] }]
-const subsFilters: FileFilter[] = [{ name: 'Select Subs', extensions: ['srt', 'ass', 'webvtt'] }]
-
+const videoFilters: FileFilter[] = [{ name: 'Select Video', extensions: ['mp4', 'mkv'] }];
+const subsFilters: FileFilter[] = [{ name: 'Select Subs', extensions: ['srt', 'ass', 'webvtt'] }];
 </script>
 
 <template>
@@ -22,7 +21,7 @@ const subsFilters: FileFilter[] = [{ name: 'Select Subs', extensions: ['srt', 'a
       :title="'Subtitles'" />
   </div>
   <div class="flex flex-col flex-1 h-full">
-    <VideoPlayerVue :videoPath="selectedVideo" />
+    <VideoPlayerVue :subs-path="selectedSubs" :video-path="selectedVideo" />
     <SubTrackVue />
     <div class="w-full h-6 flex bg-zinc-500 text-gray-100 font-bold text-sm ">
       <div class="flex-1 flex h-full items-center">

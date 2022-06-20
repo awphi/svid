@@ -2,14 +2,16 @@ import { dialog, FileFilter, IpcMainInvokeEvent } from "electron";
 import dirTree from "directory-tree";
 import { DirectoryTree, DirectoryTreeOptions } from "directory-tree";
 import express, { Router } from "express";
+import cors from "cors";
 
 export const expressApp = express();
 const fileRouter = Router();
 
-expressApp.get("/", (req, res) => {
-  res.send("Hello, World!");
-});
-
+expressApp.use(
+  cors({
+    origin: "*",
+  })
+);
 expressApp.use("/files", fileRouter);
 
 interface PreloadApiFunction {
