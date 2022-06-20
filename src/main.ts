@@ -3,16 +3,25 @@ electronReload(__dirname, {});
 
 import path from "path";
 import { app, BrowserWindow, ipcMain } from "electron";
-import { API } from "./api";
+import { API, expressApp } from "./api";
+import { Server } from "http";
+
+const PORT = 8901;
+
+var server: Server | undefined = undefined;
 
 const isDev: boolean = process.env.IS_DEV == "true" ? true : false;
 
 function createWindow(): void {
+  server = expressApp.listen(PORT, () => {
+    console.log(`Local express server started on :${PORT}`);
+  });
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 1366,
     height: 768,
-    title: 'sVid',
+    title: "sVid",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: true,
@@ -51,6 +60,7 @@ app.whenReady().then(() => {
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
+    server?.close();
     app.quit();
   }
 });

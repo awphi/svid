@@ -4,19 +4,25 @@ import VideoPlayerVue from './components/VideoPlayer.vue';
 import SubTrackVue from './components/SubTrack.vue';
 import { DirectoryTree } from 'directory-tree';
 import { Ref, ref } from 'vue';
+import { FileFilter } from 'electron';
 
 const selectedVideo: Ref<DirectoryTree | undefined> = ref(undefined);
 const selectedSubs: Ref<DirectoryTree | undefined> = ref(undefined);
+
+const videoFilters: FileFilter[] = [{ name: 'Select Video', extensions: ['mp4', 'mkv'] }]
+const subsFilters: FileFilter[] = [{ name: 'Select Subs', extensions: ['srt', 'ass', 'webvtt'] }]
 
 </script>
 
 <template>
   <div class="bg-zinc-500 flex flex-col w-1/4 ">
-    <SourceSelectorVue @selection-changed="(sel, _) => selectedVideo = sel" class="h-1/2" :title="'Videos'" />
-    <SourceSelectorVue @selection-changed="(sel, _) => selectedSubs = sel" class="h-1/2" :title="'Subtitles'" />
+    <SourceSelectorVue :filters="videoFilters" @selection-changed="(sel, _) => selectedVideo = sel" class="h-1/2"
+      :title="'Videos'" />
+    <SourceSelectorVue :filters="subsFilters" @selection-changed="(sel, _) => selectedSubs = sel" class="h-1/2"
+      :title="'Subtitles'" />
   </div>
   <div class="flex flex-col flex-1 h-full">
-    <VideoPlayerVue />
+    <VideoPlayerVue :videoPath="selectedVideo" />
     <SubTrackVue />
     <div class="w-full h-6 flex bg-zinc-500 text-gray-100 font-bold text-sm ">
       <div class="flex-1 flex h-full items-center">
