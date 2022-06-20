@@ -45,10 +45,9 @@ const selectDirectoryTrees: PreloadApiFunction = async function (
 };
 
 const serveDirectoryTree: PreloadApiFunction = async function (event: IpcMainInvokeEvent, tree: DirectoryTree) {
-  console.log("Serving:", tree.path);
-  // TODO test
-  fileRouter.use(express.static(tree.path));
-  //expressApp.use(`/${tree.name}`, express.static(tree.path));
+  const enc = encodeURI(tree.path);
+  console.log("Serving:", `/files/${enc} =>`, tree.path);
+  fileRouter.use(`/${enc}`, express.static(tree.path));
 };
 
 export const API: { [name: string]: PreloadApiFunction } = {

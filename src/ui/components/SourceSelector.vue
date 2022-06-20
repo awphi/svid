@@ -6,9 +6,9 @@ import data from './data.json';
 import { FileFilter } from 'electron';
 
 // TODO dynamic tree from dialog selections saved in user prefs or whatever...
-const trees: DirectoryTree[] = [
-  data as DirectoryTree
-];
+const trees: Ref<DirectoryTree[]> = ref([
+  //data as DirectoryTree
+]);
 
 const props = defineProps<{
   title: string,
@@ -29,6 +29,7 @@ watch(refs.selection, (sel, prevSel) =>
 async function addClicked() {
   try {
     const dirTrees = await window.api.dialog.selectDirectoryTrees(props.filters);
+    trees.value.push(...dirTrees);
     dirTrees.forEach((d: DirectoryTree) => window.api.server.serveDirectoryTree(d))
   } catch (e) {
     console.error(e);
@@ -41,7 +42,7 @@ async function addClicked() {
     <div class="px-2 py-1 flex flex-row items-center bg-zinc-600  shadow-sm  text-gray-100">
       <h2 class="text-2xl font-bold">{{ title }}</h2>
       <div class="flex-1"></div>
-      <button @click="addClicked" class="b-1 bg-zinc-700 px-3 py-0.5 rounded-full">Add</button>
+      <button @click="addClicked" class="b-1 bg-zinc-700 hover:bg-zinc-800 px-3 py-0.5 rounded-full">Add</button>
     </div>
 
     <div class="flex flex-col w-full flex-1 overflow-y-scroll">

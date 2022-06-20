@@ -9,7 +9,7 @@ const props = defineProps<{
 }>()
 
 const isFolder = computed(() => props.item.type === "directory");
-const isHidden = computed(() => props.item.extension === '')
+const isHidden = computed(() => props.item.extension === '');
 const isOpen = ref(false);
 
 
@@ -35,10 +35,11 @@ function toggle(): void {
       :class="{ 'font-bold': isFolder, 'hover:bg-zinc-600': !isFolder, 'bg-zinc-700 hover:bg-zinc-700': selection.value?.path === item.path }">
       <h2 class="whitespace-nowrap">{{ item.name }}</h2>
       <div v-if="isFolder" class="flex-1"></div>
-      <button @click="toggle" v-if="isFolder" class="flex items-center justify-center rounded-md h-5 w-5 bg-zinc-600">{{
-          isOpen ? '-' :
-            '+'
-      }}
+      <button @click="toggle" v-if="isFolder"
+        class="flex items-center justify-center rounded-md h-5 w-5 bg-zinc-600 hover:bg-zinc-700">{{
+            isOpen ? '-' :
+              '+'
+        }}
       </button>
     </div>
     <hr class=" border-black opacity-10" v-if="isFolder" />

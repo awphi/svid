@@ -1,6 +1,3 @@
-import electronReload from "electron-reload";
-electronReload(__dirname, {});
-
 import path from "path";
 import { app, BrowserWindow, ipcMain } from "electron";
 import { API, expressApp } from "./api";
