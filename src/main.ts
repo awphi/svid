@@ -1,13 +1,13 @@
 import path from "path";
-import { app, BrowserWindow, ipcMain } from "electron";
-import { API, expressApp } from "./api";
+import { app, BrowserWindow } from "electron";
+import { registerApiListeners, expressApp } from "./api";
 import { Server } from "http";
 
 const PORT = 8901;
-
 var server: Server | undefined = undefined;
-
 const isDev: boolean = process.env.IS_DEV == "true" ? true : false;
+
+registerApiListeners(app);
 
 function createWindow(): void {
   server = expressApp.listen(PORT, () => {
@@ -37,12 +37,7 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
-  // Register ipcMain hooks
-  Object.keys(API).forEach((k) => {
-    ipcMain.handle(k, API[k]);
-  });
-
+app.on("ready", () => {
   createWindow();
 
   app.on("activate", function () {

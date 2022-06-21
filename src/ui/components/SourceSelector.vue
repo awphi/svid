@@ -26,7 +26,7 @@ watch(refs.selection, (sel, prevSel) =>
   emits('selectionChanged', sel, prevSel)
 );
 
-async function addClicked() {
+async function clicked() {
   try {
     const dirTrees = await window.api.dialog.selectDirectoryTrees(props.filters);
     trees.value.push(...dirTrees);
@@ -35,6 +35,10 @@ async function addClicked() {
     console.error(e);
   }
 }
+
+async function contextMenued(e: MouseEvent, tree: DirectoryTree) {
+  window.api.menu.openSrcSelectorMenu(e.x, e.y, tree.path);
+}
 </script>
 
 <template>
@@ -42,12 +46,13 @@ async function addClicked() {
     <div class="px-2 py-1 flex flex-row items-center bg-zinc-600  shadow-sm  text-gray-100">
       <h2 class="text-2xl font-bold">{{ title }}</h2>
       <div class="flex-1"></div>
-      <button @click="addClicked" class="b-1 bg-zinc-700 hover:bg-zinc-800 px-3 py-0.5 rounded-full">Add</button>
+      <button @click="clicked" class="b-1 bg-zinc-700 hover:bg-zinc-800 px-3 py-0.5 rounded-full">Add</button>
     </div>
 
     <div class="flex flex-col w-full flex-1 overflow-y-scroll">
       <div class="px-2 py-1 text-gray-100">
-        <FolderItem :selection="refs.selection" :level="0" v-for="tree in trees" :item="tree" />
+        <FolderItem @contextmenu="(e) => contextMenued(e, tree)" :selection="refs.selection" :level="0"
+          v-for="tree in trees" :item="tree" />
       </div>
     </div>
   </div>
