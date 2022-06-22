@@ -1,19 +1,13 @@
 import path from "path";
 import { app, BrowserWindow } from "electron";
-import { registerApiListeners, expressApp } from "./api";
-import { Server } from "http";
+import { registerApiListeners } from "./api";
 
-const PORT = 8901;
-var server: Server | undefined = undefined;
 const isDev: boolean = process.env.IS_DEV == "true" ? true : false;
 
-registerApiListeners(app);
+// Only register the app listeners once - in the main process
+registerApiListeners();
 
 function createWindow(): void {
-  server = expressApp.listen(PORT, () => {
-    console.log(`Local express server started on :${PORT}`);
-  });
-
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 1366,
@@ -21,7 +15,8 @@ function createWindow(): void {
     title: "sVid",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      nodeIntegration: true,
+      nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION === "true",
+      contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
       devTools: isDev,
     },
   });
@@ -52,7 +47,6 @@ app.on("ready", () => {
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    server?.close();
     app.quit();
   }
 });

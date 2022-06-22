@@ -15,10 +15,10 @@ const subsFilters: FileFilter[] = [{ name: 'Select Subs', extensions: ['srt', 'a
 
 <template>
   <div class="bg-zinc-500 flex flex-col w-1/4 ">
-    <SourceSelectorVue :filters="videoFilters" @selection-changed="(sel, _) => selectedVideo = sel" class="h-1/2"
-      :title="'Videos'" />
-    <SourceSelectorVue :filters="subsFilters" @selection-changed="(sel, _) => selectedSubs = sel" class="h-1/2"
-      :title="'Subtitles'" />
+    <SourceSelectorVue :id="'video'" :filters="videoFilters" @selection-changed="(sel, _) => selectedVideo = sel"
+      class="h-1/2" :title="'Videos'" />
+    <SourceSelectorVue :id="'subs'" :filters="subsFilters" @selection-changed="(sel, _) => selectedSubs = sel"
+      class="h-1/2" :title="'Subtitles'" />
   </div>
   <div class="flex flex-col flex-1 h-full">
     <VideoPlayerVue :subs-path="selectedSubs" :video-path="selectedVideo" />
