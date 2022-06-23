@@ -22,7 +22,6 @@ watch(refs.selection, (sel, prevSel) =>
   emits('selectionChanged', sel, prevSel)
 );
 
-
 const trees: Ref<DirectoryTree[]> = ref([]);
 
 // trees serialization
@@ -46,15 +45,13 @@ async function addButtonClicked() {
   }
 }
 
-// TODO move this into FolderItem component, make it only work on folders (not files), make it edit the trees ref in here
-async function openFolderItemMenu(e: MouseEvent, tree: DirectoryTree) {
-  window.api.menu.openSrcSelectorMenu(e.x, e.y).then((res: string) => {
-    if (res === 'refresh') {
-      // TODO
-    } else if (res === 'delete') {
-      // TODO
+function removeTree(target: DirectoryTree) {
+  for (let i = 0; i < trees.value.length; i++) {
+    if (trees.value[i].path == target.path) {
+      trees.value.splice(i, 1);
+      return;
     }
-  });
+  }
 }
 </script>
 
@@ -68,8 +65,8 @@ async function openFolderItemMenu(e: MouseEvent, tree: DirectoryTree) {
 
     <div class="flex flex-col w-full flex-1 overflow-y-scroll">
       <div class="px-2 py-1 text-gray-100">
-        <FolderItem @contextmenu="(e) => openFolderItemMenu(e, tree)" :selection="refs.selection" :level="0"
-          v-for="tree in trees" :item="tree" />
+        <FolderItem @delete-tree="removeTree" :selection="refs.selection" :level="0" v-for="tree in trees"
+          :item="tree" />
       </div>
     </div>
   </div>
