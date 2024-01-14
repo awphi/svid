@@ -29,7 +29,7 @@ interface SavedDirectoryTree {
 }
 
 function buildPromiseMenu(
-  template: Array<MenuItemConstructorOptions | MenuItem>
+  template: Array<MenuItemConstructorOptions | MenuItem>,
 ): [Promise<string>, Menu] {
   var resolve: (value: Promise<string> | string) => void;
 
@@ -43,7 +43,7 @@ function buildPromiseMenu(
     i.click = (
       event: KeyboardEvent,
       focusedWindow: BrowserWindow,
-      focusedWebContents: WebContents
+      focusedWebContents: WebContents,
     ) => {
       c(event, focusedWindow, focusedWebContents);
       resolve(i.id === undefined ? i.label.split(" ")[0].toLowerCase() : i.id);
@@ -70,8 +70,8 @@ function getDirTrees(paths: string[], filters: FileFilter[]): DirectoryTree[] {
 }
 
 async function selectDirectoryTrees(
-  event: IpcMainInvokeEvent,
-  filters: FileFilter[]
+  _event: IpcMainInvokeEvent,
+  filters: FileFilter[],
 ): Promise<DirectoryTree[]> {
   const { canceled, filePaths } = await dialog.showOpenDialog({
     title: "Select Folder",
@@ -87,10 +87,10 @@ async function selectDirectoryTrees(
 }
 
 async function openContextMenu(
-  event: IpcMainInvokeEvent,
+  _event: IpcMainInvokeEvent,
   items: Electron.MenuItemConstructorOptions[],
   x: number,
-  y: number
+  y: number,
 ): Promise<string> {
   const [p, menu] = buildPromiseMenu(items);
   menu.popup({ x, y });
@@ -98,32 +98,36 @@ async function openContextMenu(
 }
 
 async function showItemInFolder(
-  event: IpcMainInvokeEvent,
-  path: string
+  _event: IpcMainInvokeEvent,
+  path: string,
 ): Promise<void> {
   shell.openExternal(path);
 }
 
 async function loadSavedDirectoryTrees(
-  event: IpcMainInvokeEvent,
+  _event: IpcMainInvokeEvent,
   id: string,
-  ext = "json"
+  ext = "json",
 ): Promise<DirectoryTree[]> {
-  const data = await fs.readFile(
-    path.join(app.getPath("userData"), `${id}.${ext}`),
-    { encoding: "utf-8" }
-  );
-  console.log(data);
-  const sdt = JSON.parse(data) as SavedDirectoryTree;
+  try {
+    const data = await fs.readFile(
+      path.join(app.getPath("userData"), `${id}.${ext}`),
+      { encoding: "utf-8" },
+    );
+    console.log(data);
+    const sdt = JSON.parse(data) as SavedDirectoryTree;
 
-  return getDirTrees(sdt.paths, sdt.filters);
+    return getDirTrees(sdt.paths, sdt.filters);
+  } catch (_) {
+    return Promise.resolve([]);
+  }
 }
 
 function saveDirectoryTrees(
-  event: IpcMainInvokeEvent,
+  _event: IpcMainInvokeEvent,
   id: string,
   paths: string[],
-  filters: FileFilter[]
+  filters: FileFilter[],
 ): Promise<void> {
   const data: SavedDirectoryTree = {
     paths,
@@ -142,9 +146,9 @@ function getBinaryPathInAsar(path: string): string {
 }
 
 async function decodeAudioDataFromPath(
-  event: IpcMainInvokeEvent,
+  _event: IpcMainInvokeEvent,
   filePath: string,
-  pxpersecond: number
+  pxpersecond: number,
 ): Promise<any> {
   return new Promise<JsonWaveformData>((res) => {
     let tick = Date.now();
@@ -187,23 +191,23 @@ async function decodeAudioDataFromPath(
 
 export function makeAPIMethodDefs(
   fileRouter: Router | undefined,
-  mainWindow: BrowserWindow | undefined
+  mainWindow: BrowserWindow | undefined,
 ): APIMethodsDefs {
   async function serveDirectoryTree(
-    event: IpcMainInvokeEvent,
-    path: string
+    _event: IpcMainInvokeEvent,
+    path: string,
   ): Promise<void> {
     const enc = encodeURI(path);
     await fs.access(path, fsConstants.F_OK);
     console.log(`Serving tree: /files/${enc} @ ${path}`);
     fileRouter!.use(
       enc.startsWith("/") ? enc : "/" + enc,
-      express.static(path)
+      express.static(path),
     );
     const watcher = fs.watch(path, {
       recursive: true,
     });
-    for await (const event of watcher) {
+    for await (const _event of watcher) {
       mainWindow!.webContents.send("treeChanged", path);
     }
   }
@@ -237,7 +241,7 @@ export function makeAPIMethodMap(apiMethodDefs: APIMethodsDefs): {
   Object.keys(apiMethodDefs).forEach((k1) => {
     const section = k1 as keyof APIMethodsDefs;
     Object.keys(apiMethodDefs[section]).forEach(
-      (k2) => (apiMethodMap[k1 + ":" + k2] = apiMethodDefs[section][k2])
+      (k2) => (apiMethodMap[k1 + ":" + k2] = apiMethodDefs[section][k2]),
     );
   });
   return apiMethodMap;

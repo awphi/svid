@@ -1,7 +1,9 @@
 // All of the Node.js APIs are available in the preload process.
 // It has the same sandbox as a Chrome extension.
 import { ipcRenderer, contextBridge } from "electron";
-import { makeApiRenderer } from "./api";
+
+// TODO remove this awful abstraction and use something like trpc
+import { makeApiRenderer } from "../main/api";
 
 contextBridge.exposeInMainWorld("api", makeApiRenderer(ipcRenderer));
 

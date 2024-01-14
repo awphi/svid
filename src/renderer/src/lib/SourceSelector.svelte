@@ -2,7 +2,7 @@
   import type { DirectoryTree } from "directory-tree";
   import FolderItem from "./FolderItem.svelte";
   import type { FileFilter } from "electron";
-  import { createEventDispatcher, onMount } from "svelte";
+  import { onMount } from "svelte";
 
   export let title: string;
   export let filters: FileFilter[];
@@ -45,7 +45,7 @@
         refreshThrottles[path] = window.setTimeout(async () => {
           const freshTree = await window.api.storage.getDirTrees(
             [path],
-            filters
+            filters,
           );
           trees[path] = freshTree[0];
         }, 10);
@@ -59,10 +59,10 @@
         .saveDirectoryTrees(
           id,
           Object.values(trees).map((i) => i.path),
-          filters
+          filters,
         )
         .catch((e: any) =>
-          console.error(`Failed to write trees '${id}' to disk`, e)
+          console.error(`Failed to write trees '${id}' to disk`, e),
         );
     });
   });
@@ -89,13 +89,13 @@
 
 <div class={"flex flex-col w-full " + clazz}>
   <div
-    class="px-2 py-1 flex flex-row items-center bg-neutral-700 border-neutral-800 border-t-[1px] border-b-[1px]  shadow-sm  text-gray-100"
+    class="px-2 py-1 flex flex-row items-center bg-neutral-700 border-neutral-800 border-t-[1px] border-b-[1px] shadow-sm text-gray-100"
   >
     <h2 class="text-2xl font-bold">{title}</h2>
     <div class="flex-1" />
     <button
       on:click={addButtonClicked}
-      class="b-1 bg-neutral-800  hover:bg-neutral-900 px-3 py-0.5 rounded-full"
+      class="b-1 bg-neutral-800 hover:bg-neutral-900 px-3 py-0.5 rounded-full"
       >Add</button
     >
   </div>
@@ -115,7 +115,7 @@
   </div>
 </div>
 
-<style>
+<style lang="postcss">
   ::-webkit-scrollbar {
     @apply w-1 h-1;
   }

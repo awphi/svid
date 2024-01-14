@@ -30,37 +30,37 @@ export interface API {
     openContextMenu(
       items: Electron.MenuItemConstructorOptions[],
       x: number,
-      y: number
+      y: number,
     ): Promise<string>;
   };
   storage: {
     loadSavedDirectoryTrees(
       id: string,
-      ext?: string
+      ext?: string,
     ): Promise<(DirectoryTree | null)[]>;
     saveDirectoryTrees(
       id: string,
       paths: string[],
-      filters: FileFilter[]
+      filters: FileFilter[],
     ): Promise<void>;
     getDirTrees(
       paths: string[],
-      filters: FileFilter[]
+      filters: FileFilter[],
     ): Promise<DirectoryTree[]>;
   };
   audio: {
     decodeAudioDataFromPath(
       url: string,
-      pxpersecond: number
+      pxpersecond: number,
     ): Promise<JsonWaveformData>;
   };
   on(
     ev: "treeChanged",
-    handler: (treePath: string) => void | Promise<void>
+    handler: (treePath: string) => void | Promise<void>,
   ): void;
   off(
     eventName: string | symbol,
-    listener: (...args: any[]) => void | Promise<void>
+    listener: (...args: any[]) => void | Promise<void>,
   ): void;
 }
 
@@ -76,7 +76,7 @@ export function makeApiMain(window: BrowserWindow): void {
   const expressApp = express().use(
     cors({
       origin: "*",
-    })
+    }),
   );
   var fileServer: Server | undefined = undefined;
   const fileRouter = Router();
@@ -110,14 +110,14 @@ export function makeApiRenderer(ipcRenderer: IpcRenderer): API {
   type APISection = { [name: string]: (...args: any[]) => Promise<any> };
   type APIEventListener = (
     ev: string,
-    handler: (...args: any) => void | Promise<void>
+    handler: (...args: any) => void | Promise<void>,
   ) => void;
   type PartialAPI = {
     [name in keyof API]: APISection | APIEventListener;
   };
 
   const apiMethodMap = makeAPIMethodMap(
-    makeAPIMethodDefs(undefined, undefined)
+    makeAPIMethodDefs(undefined, undefined),
   );
   const apiGrouped: PartialAPI = Object.create(null);
 

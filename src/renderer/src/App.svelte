@@ -8,7 +8,6 @@
   import SourceSelector from "./lib/SourceSelector.svelte";
   import AudioTrack from "./lib/AudioTrack.svelte";
   import SubTrack from "./lib/SubTrack.svelte";
-  import { onDestroy, onMount } from "svelte";
 
   const videoFilters: FileFilter[] = [
     { name: "Select Video", extensions: ["mp4", "mkv"] },

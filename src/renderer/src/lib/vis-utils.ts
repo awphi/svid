@@ -1,4 +1,9 @@
-export function clipText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, suffix = "...") {
+export function clipText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  suffix = "...",
+) {
   var metrics = ctx.measureText(text);
   var suffixMetrics = ctx.measureText(suffix);
   var textClipped = text;
@@ -21,7 +26,10 @@ function pxStringToNumber(pixelString: string): number {
   return Math.round(pixelString!.match(regex)!.map(Number)[0]);
 }
 
-export function setCanvasSize(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D): void {
+export function setCanvasSize(
+  canvas: HTMLCanvasElement,
+  context: CanvasRenderingContext2D,
+): void {
   const computedStyle = window.getComputedStyle(canvas);
 
   const width = pxStringToNumber(computedStyle.width!);

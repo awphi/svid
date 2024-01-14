@@ -57,7 +57,7 @@
       amplitude: number,
       height: number,
       pad: number = 0,
-      offset: number = 0
+      offset: number = 0,
     ) => {
       // We use 16 bit output from audiowaveform so scale within range 2^16 + some padding
       const range = 2 ** 16 + pad;
@@ -72,7 +72,7 @@
     const startIdx = waveform.at_time(point);
     const endIdx = Math.min(
       waveform.at_time(point + waveform.seconds_per_pixel * canvas.width),
-      waveform.length
+      waveform.length,
     );
 
     // Loop forwards, drawing the upper half of the waveform

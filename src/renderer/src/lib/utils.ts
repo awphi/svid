@@ -13,7 +13,7 @@ export const BASE_URL = "http://localhost:8901/files/";
 
 export function formatFileUrl(
   tree: DirectoryTree | undefined,
-  base = BASE_URL
+  base = BASE_URL,
 ): string {
   return tree === undefined ? "" : base + encodeURI(tree.path);
 }

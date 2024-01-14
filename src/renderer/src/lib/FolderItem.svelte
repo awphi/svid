@@ -45,7 +45,7 @@
         { label: "Open in File Explorer", id: "open" },
       ],
       event.x,
-      event.y
+      event.y,
     );
     if (res === "delete") {
       dispatch("delete-tree", item);
@@ -63,14 +63,14 @@
     style={`padding-left: ${level * 10}px`}
   >
     <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div
+    <button
       on:click={() => {
         if (!isFolder) selection = item;
       }}
       on:contextmenu={() => {
         if (isSelected) selection = undefined;
       }}
-      class="flex items-center rounded-md px-1 "
+      class="flex items-center rounded-md px-1"
       class:font-bold={isFolder}
       class:hover:bg-neutral-700={!isFolder}
       class:bg-neutral-800={isSelected}
@@ -92,7 +92,7 @@
           <Icon icon="bx:chevron-down" vFlip={isOpen} />
         </button>
       {/if}
-    </div>
+    </button>
     {#if isFolder}
       <hr class=" border-black opacity-10" />
       <div class:hidden={!isOpen}>

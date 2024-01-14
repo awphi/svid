@@ -87,7 +87,7 @@
             ...v,
             from: v.from / 1000,
             to: v.to / 1000,
-          }))
+          })),
         )
         .then((parsed) => (subs = parsed));
     }
