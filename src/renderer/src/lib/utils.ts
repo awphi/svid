@@ -1,5 +1,12 @@
 import type { DirectoryTree } from "directory-tree";
 import { default as toWebVTT } from "srt-webvtt";
+import { createTRPCProxyClient } from "@trpc/client";
+import { ipcLink } from "electron-trpc/renderer";
+import type { AppRouter } from "../../../main/trpc-api";
+
+export const client = createTRPCProxyClient<AppRouter>({
+  links: [ipcLink()],
+});
 
 export function isSubs(d: DirectoryTree): boolean {
   return (
@@ -9,13 +16,17 @@ export function isSubs(d: DirectoryTree): boolean {
   );
 }
 
-export const BASE_URL = "http://localhost:8901/files/";
+export const BASE_URL = "http://localhost:8901/files";
 
 export function formatFileUrl(
   tree: DirectoryTree | undefined,
   base = BASE_URL,
 ): string {
-  return tree === undefined ? "" : base + encodeURI(tree.path);
+  if (tree === undefined) {
+    return "";
+  }
+  const url = new URL(tree.path, BASE_URL);
+  return base + url.pathname;
 }
 
 export async function getVttSubsUrl(subs: DirectoryTree): Promise<string> {

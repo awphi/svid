@@ -3,6 +3,7 @@
   import FolderItem from "./FolderItem.svelte";
   import type { FileFilter } from "electron";
   import { onMount } from "svelte";
+  import { client } from "./utils";
 
   export let title: string;
   export let filters: FileFilter[];
@@ -16,8 +17,8 @@
 
   onMount(() => {
     // trees deserialization
-    window.api.storage
-      .loadSavedDirectoryTrees(id)
+    client.loadSavedDirectoryTrees
+      .query({ id })
       .then((d) => d.filter((v) => v !== null))
       .then((d) => {
         d.forEach((t) => {
@@ -27,8 +28,8 @@
       })
       .then((d) => {
         d.forEach((t) => {
-          window.api.server
-            .serveDirectoryTree(t!.path)
+          client.serveDirectoryTree
+            .query({ path: t!.path })
             .catch((e) => console.error(`Failed to load path ${t!.path}`, e));
         });
       });
@@ -36,31 +37,37 @@
     // Deals with reloading file trees when they change on the disk
     // We employ some throttling as we get a large spray of treeChanged events sometimes
     const refreshThrottles: { [path: string]: number } = Object.create(null);
-    window.api.on("treeChanged", (path) => {
-      const tree = trees[path];
-      if (tree !== undefined) {
-        if (path in refreshThrottles) {
-          window.clearTimeout(refreshThrottles[path]);
+    client.sub.subscribe("treeChanged", {
+      onData: (data) => {
+        // TODO make more typesafe
+        const path = data as string;
+        const tree = trees[path];
+        if (tree !== undefined) {
+          if (path in refreshThrottles) {
+            window.clearTimeout(refreshThrottles[path]);
+          }
+          refreshThrottles[path] = window.setTimeout(async () => {
+            const freshTree = await client.getDirTrees.query({
+              paths: [path],
+              filters,
+            });
+            trees[path] = freshTree[0];
+          }, 10);
         }
-        refreshThrottles[path] = window.setTimeout(async () => {
-          const freshTree = await window.api.storage.getDirTrees(
-            [path],
-            filters,
-          );
-          trees[path] = freshTree[0];
-        }, 10);
-      }
+      },
     });
   });
 
   onMount(() => {
     window.addEventListener("beforeunload", async () => {
-      await window.api.storage
-        .saveDirectoryTrees(
+      await client.saveDirectoryTrees
+        .query({
           id,
-          Object.values(trees).map((i) => i.path),
-          filters,
-        )
+          filteredPaths: {
+            paths: Object.values(trees).map((i) => i.path),
+            filters,
+          },
+        })
         .catch((e: any) =>
           console.error(`Failed to write trees '${id}' to disk`, e),
         );
@@ -69,12 +76,12 @@
 
   async function addButtonClicked() {
     try {
-      const dirTrees = await window.api.dialog.selectDirectoryTrees(filters);
+      const dirTrees = await client.selectDirectoryTrees.query({ filters });
       // Filter out trees already added
       dirTrees.forEach((treeIn: DirectoryTree) => {
         if (trees[treeIn.path] === undefined) {
           trees[treeIn.path] = treeIn;
-          window.api.server.serveDirectoryTree(treeIn.path);
+          client.serveDirectoryTree.query({ path: treeIn.path });
         }
       });
     } catch (e) {

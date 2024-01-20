@@ -2,11 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Electron</title>
+    <title>sVid</title>
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <!-- TODO is there anything we can do about this unwieldly CSP string? Maybe some svelte plugin? -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
+      content="default-src 'self'; script-src 'self'; media-src http://localhost:8901 blob:; style-src 'self' 'unsafe-inline'; connect-src blob: https://api.simplesvg.com https://api.iconify.design ws://localhost:5173 http://localhost:8901"
     />
   </head>
 

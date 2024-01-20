@@ -2,7 +2,15 @@ import { app, shell, BrowserWindow } from "electron";
 import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
-import { makeApiMain } from "./api";
+import { createIPCHandler } from "electron-trpc/main";
+import { appRouter } from "./trpc-api";
+import { expressApp } from "./api-utils";
+
+const fileServerPort = 8901;
+
+const fileServer = expressApp.listen(fileServerPort, () => {
+  console.log(`File server listening on port ${fileServerPort}`);
+});
 
 function createWindow(): void {
   // Create the browser window.
@@ -18,7 +26,7 @@ function createWindow(): void {
     },
   });
 
-  makeApiMain(mainWindow);
+  createIPCHandler({ router: appRouter, windows: [mainWindow] });
 
   mainWindow.on("ready-to-show", () => {
     mainWindow.show();
@@ -67,6 +75,7 @@ app.whenReady().then(() => {
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
+    fileServer.close();
   }
 });
 

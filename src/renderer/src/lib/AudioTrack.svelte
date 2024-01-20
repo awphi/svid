@@ -3,15 +3,16 @@
   import Icon from "@iconify/svelte";
   import { onDestroy, onMount } from "svelte";
   import type { DirectoryTree } from "directory-tree";
-  import WaveformData, { type JsonWaveformData } from "waveform-data";
+  import WaveformData from "waveform-data";
+  import { client } from "./utils";
 
   let canvas: HTMLCanvasElement;
   let canvasContainer: HTMLDivElement;
   let processing = false;
-  let waveform: WaveformData | null = undefined;
+  let waveform: WaveformData | null = null;
   let abort = false;
 
-  export let selectedVideo: DirectoryTree;
+  export let selectedVideo: DirectoryTree | undefined;
   export let point = 0;
   export let bgColor = "rgb(82 82 82)";
   export let pxpersecond: number;
@@ -19,14 +20,14 @@
   $: {
     if (selectedVideo === undefined) {
       processing = false;
-      waveform = undefined;
+      waveform = null;
       abort = true;
     } else {
       processing = true;
       abort = false;
-      window.api.audio
-        .decodeAudioDataFromPath(selectedVideo.path, pxpersecond)
-        .then((data: JsonWaveformData) => {
+      client.decodeAudioDataFromPath
+        .query({ filePath: selectedVideo.path, pxpersecond })
+        .then((data) => {
           if (abort) {
             return;
           }
@@ -37,7 +38,7 @@
     }
   }
 
-  async function redraw(point: number, waveform: WaveformData | undefined) {
+  async function redraw(point: number, waveform: WaveformData | null) {
     if (canvas === undefined || canvasContainer === undefined) {
       return;
     }
@@ -49,7 +50,7 @@
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    if (processing || waveform === undefined) {
+    if (processing || waveform === null) {
       return;
     }
 
