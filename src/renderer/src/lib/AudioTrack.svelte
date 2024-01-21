@@ -114,8 +114,8 @@
   bind:this={canvasContainer}
 >
   {#if processing}
-    <div class="absolute text-neutral-200">
-      <Icon class="w-20 h-20" icon="eos-icons:three-dots-loading" />
+    <div class="absolute flex flex-col items-center text-neutral-200">
+      <Icon class="w-10 h-10" icon="eos-icons:three-dots-loading" />
       <span class="text-xs">Processing audio data</span>
     </div>
   {/if}

@@ -42,9 +42,10 @@ export async function getVttSubsUrl(subs: DirectoryTree): Promise<string> {
   return "";
 }
 
-export function omit<T extends {}>(obj: T, remove: string | string[]) {
+export function omit<T extends {}>(obj: T, removeBase: keyof T | (keyof T)[]) {
   let result = {} as T;
-  if (typeof remove === "string") {
+  let remove: (keyof T)[] = [];
+  if (typeof removeBase === "string") {
     remove = [].slice.call(arguments, 1);
   }
   for (let prop in obj) {

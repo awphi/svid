@@ -5,11 +5,13 @@
   import { onMount } from "svelte";
   import { client, omit } from "./utils";
   import type { Writable } from "svelte/store";
+  import type { Dict } from "./types";
+  import { addToObjectStore, removeFromObjectStore } from "./store";
 
   export let title: string;
   export let filters: FileFilter[];
   export let selection: DirectoryTree | undefined = undefined;
-  export let trees: Writable<{ [name: string]: DirectoryTree }>;
+  export let trees: Writable<Dict<DirectoryTree>>;
 
   let clazz = "";
   export { clazz as class };
@@ -45,7 +47,7 @@
         paths: [path],
         filters,
       });
-      setTree(freshTree[0]);
+      addToObjectStore(trees, { [path]: freshTree[0] });
     }, 10);
   }
 
@@ -64,21 +66,13 @@
       // Filter out trees already added
       dirTrees.forEach((treeIn: DirectoryTree) => {
         if ($trees[treeIn.path] === undefined) {
-          setTree(treeIn);
+          addToObjectStore(trees, { [treeIn.path]: treeIn });
           client.serveDirectoryTree.query({ path: treeIn.path });
         }
       });
     } catch (e) {
       console.error(e);
     }
-  }
-
-  function removeTree(target: DirectoryTree) {
-    trees.set(omit($trees, target.path));
-  }
-
-  function setTree(target: DirectoryTree) {
-    trees.set(Object.assign($trees, { [target.path]: target }));
   }
 </script>
 
@@ -100,7 +94,7 @@
     <div class="pl-2 pr-1 py-1 text-gray-100">
       {#each Object.values($trees) as tree}
         <FolderItem
-          on:delete-tree={(e) => removeTree(e.detail)}
+          on:delete-tree={(e) => removeFromObjectStore(trees, e.detail.path)}
           bind:selection
           level={0}
           item={tree}
