@@ -41,3 +41,18 @@ export async function getVttSubsUrl(subs: DirectoryTree): Promise<string> {
   }
   return "";
 }
+
+export function omit<T extends {}>(obj: T, remove: string | string[]) {
+  let result = {} as T;
+  if (typeof remove === "string") {
+    remove = [].slice.call(arguments, 1);
+  }
+  for (let prop in obj) {
+    if (!obj.hasOwnProperty || obj.hasOwnProperty(prop)) {
+      if (remove.indexOf(prop) === -1) {
+        result[prop] = obj[prop];
+      }
+    }
+  }
+  return result;
+}

@@ -3,74 +3,58 @@
   import FolderItem from "./FolderItem.svelte";
   import type { FileFilter } from "electron";
   import { onMount } from "svelte";
-  import { client } from "./utils";
+  import { client, omit } from "./utils";
+  import type { Writable } from "svelte/store";
 
   export let title: string;
   export let filters: FileFilter[];
-  export let id: string;
   export let selection: DirectoryTree | undefined = undefined;
+  export let trees: Writable<{ [name: string]: DirectoryTree }>;
 
   let clazz = "";
   export { clazz as class };
 
-  let trees: { [name: string]: DirectoryTree } = Object.create(null);
+  // debounce tree updates
+  const refreshDebounceTimers: { [path: string]: number } = Object.create(null);
 
-  onMount(() => {
-    // trees deserialization
-    client.loadSavedDirectoryTrees
-      .query({ id })
-      .then((d) => d.filter((v) => v !== null))
-      .then((d) => {
-        d.forEach((t) => {
-          trees[t!.path] = t!;
-        });
-        return d;
-      })
-      .then((d) => {
-        d.forEach((t) => {
-          client.serveDirectoryTree
-            .query({ path: t!.path })
-            .catch((e) => console.error(`Failed to load path ${t!.path}`, e));
-        });
+  function serveTrees(): void {
+    let erroredPaths: string[] = [];
+    for (const path of Object.keys($trees)) {
+      try {
+        client.serveDirectoryTree.query({ path });
+      } catch (e) {
+        console.error(`Failed to load path ${path}`, e);
+        erroredPaths.push(path);
+      }
+    }
+    trees.set(omit($trees, erroredPaths));
+  }
+
+  function updateTreeFromDisk(path: string): void {
+    const tree = $trees[path];
+    if (tree === undefined) {
+      return;
+    }
+
+    if (path in refreshDebounceTimers) {
+      window.clearTimeout(refreshDebounceTimers[path]);
+    }
+
+    refreshDebounceTimers[path] = window.setTimeout(async () => {
+      const freshTree = await client.getDirTrees.query({
+        paths: [path],
+        filters,
       });
-
-    // Deals with reloading file trees when they change on the disk
-    // We employ some throttling as we get a large spray of treeChanged events sometimes
-    const refreshThrottles: { [path: string]: number } = Object.create(null);
-    client.sub.subscribe("treeChanged", {
-      onData: (data) => {
-        // TODO make more typesafe
-        const path = data as string;
-        const tree = trees[path];
-        if (tree !== undefined) {
-          if (path in refreshThrottles) {
-            window.clearTimeout(refreshThrottles[path]);
-          }
-          refreshThrottles[path] = window.setTimeout(async () => {
-            const freshTree = await client.getDirTrees.query({
-              paths: [path],
-              filters,
-            });
-            trees[path] = freshTree[0];
-          }, 10);
-        }
-      },
-    });
-  });
+      setTree(freshTree[0]);
+    }, 10);
+  }
 
   onMount(() => {
-    window.addEventListener("beforeunload", async () => {
-      await client.saveDirectoryTrees
-        .query({
-          id,
-          filteredPaths: {
-            paths: Object.values(trees).map((i) => i.path),
-            filters,
-          },
-        })
-        .catch((e: any) =>
-          console.error(`Failed to write trees '${id}' to disk`, e),
-        );
+    serveTrees();
+
+    client.sub.subscribe("treeChanged", {
+      // TODO make more typesafe
+      onData: (data) => updateTreeFromDisk(data as string),
     });
   });
 
@@ -79,8 +63,8 @@
       const dirTrees = await client.selectDirectoryTrees.query({ filters });
       // Filter out trees already added
       dirTrees.forEach((treeIn: DirectoryTree) => {
-        if (trees[treeIn.path] === undefined) {
-          trees[treeIn.path] = treeIn;
+        if ($trees[treeIn.path] === undefined) {
+          setTree(treeIn);
           client.serveDirectoryTree.query({ path: treeIn.path });
         }
       });
@@ -90,7 +74,11 @@
   }
 
   function removeTree(target: DirectoryTree) {
-    delete trees[target.path];
+    trees.set(omit($trees, target.path));
+  }
+
+  function setTree(target: DirectoryTree) {
+    trees.set(Object.assign($trees, { [target.path]: target }));
   }
 </script>
 
@@ -110,7 +98,7 @@
   <div id="folders" class="flex flex-col w-full flex-1 overflow-y-scroll">
     <!-- pr-1 to compensate for the width added the scrollbar -->
     <div class="pl-2 pr-1 py-1 text-gray-100">
-      {#each Object.values(trees) as tree}
+      {#each Object.values($trees) as tree}
         <FolderItem
           on:delete-tree={(e) => removeTree(e.detail)}
           bind:selection

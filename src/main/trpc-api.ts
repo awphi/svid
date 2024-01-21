@@ -6,8 +6,6 @@ import {
   decodeAudioDataFromPathInternal,
   ee,
   getDirTreesInternal,
-  loadSavedDirectoryTreesInternal,
-  saveDirectoryTreesInternal,
   serveDirectoryTreeInternal,
 } from "./api-utils";
 import { observable } from "@trpc/server/observable";
@@ -18,13 +16,6 @@ const fileFilter = z.object({
   name: z.string(),
   extensions: z.array(z.string()),
 });
-
-const filteredPaths = z.object({
-  paths: z.array(z.string()),
-  filters: z.array(fileFilter),
-});
-
-export type FilteredPaths = z.infer<typeof filteredPaths>;
 
 const selectDirectoryTrees = t.procedure
   .input(z.object({ filters: z.array(fileFilter) }))
@@ -39,7 +30,7 @@ const selectDirectoryTrees = t.procedure
       return [];
     }
 
-    return getDirTreesInternal(filePaths, req.input.filters);
+    return getDirTreesInternal(req.input.filters, filePaths);
   });
 
 const showItemInFolder = t.procedure
@@ -51,8 +42,13 @@ const showItemInFolder = t.procedure
   .query((req) => shell.openExternal(req.input.path));
 
 const getDirTrees = t.procedure
-  .input(filteredPaths)
-  .query((req) => getDirTreesInternal(req.input.paths, req.input.filters));
+  .input(
+    z.object({
+      paths: z.array(z.string()),
+      filters: z.array(fileFilter),
+    }),
+  )
+  .query((req) => getDirTreesInternal(req.input.filters, req.input.paths));
 
 const decodeAudioDataFromPath = t.procedure
   .input(
@@ -60,26 +56,6 @@ const decodeAudioDataFromPath = t.procedure
   )
   .query((req) =>
     decodeAudioDataFromPathInternal(req.input.filePath, req.input.pxpersecond),
-  );
-
-const loadSavedDirectoryTrees = t.procedure
-  .input(
-    z.object({
-      ext: z.string().default("json"),
-      id: z.string(),
-    }),
-  )
-  .query((req) => loadSavedDirectoryTreesInternal(req.input.id, req.input.ext));
-
-const saveDirectoryTrees = t.procedure
-  .input(
-    z.object({
-      id: z.string(),
-      filteredPaths,
-    }),
-  )
-  .query((req) =>
-    saveDirectoryTreesInternal(req.input.id, req.input.filteredPaths),
   );
 
 const openContextMenu = t.procedure
@@ -127,8 +103,6 @@ export const appRouter = t.router({
   decodeAudioDataFromPath,
   openContextMenu,
   showItemInFolder,
-  loadSavedDirectoryTrees,
-  saveDirectoryTrees,
   serveDirectoryTree,
 });
 

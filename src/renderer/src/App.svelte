@@ -8,6 +8,7 @@
   import SourceSelector from "./lib/SourceSelector.svelte";
   import AudioTrack from "./lib/AudioTrack.svelte";
   import SubTrack from "./lib/SubTrack.svelte";
+  import { subsDirectoryTrees, videoDirectoryTrees } from "./lib/store";
 
   const videoFilters: FileFilter[] = [
     { name: "Select Video", extensions: ["mp4", "mkv"] },
@@ -42,16 +43,16 @@
 <div class="h-full w-full flex">
   <div class="bg-neutral-600 flex flex-col w-1/5 min-w-[200px]">
     <SourceSelector
-      id="video"
       filters={videoFilters}
       bind:selection={selectedVideo}
+      trees={videoDirectoryTrees}
       class="h-1/2"
       title="Videos"
     />
     <SourceSelector
-      id="subs"
       filters={subsFilters}
       bind:selection={selectedSubs}
+      trees={subsDirectoryTrees}
       class="h-1/2"
       title="Subtitles"
     />

@@ -13,8 +13,6 @@ import ffmpegPath from "ffmpeg-static";
 import Ffmpeg from "fluent-ffmpeg";
 import { JsonWaveformData } from "waveform-data";
 import { path as audiowaveformPath } from "@audiowaveform-installer/audiowaveform";
-import { type FilteredPaths } from "./trpc-api";
-import path from "path";
 import fs from "fs/promises";
 import { EventEmitter } from "events";
 import { constants as fsConstants } from "fs";
@@ -33,8 +31,8 @@ export function getBinaryPathInAsar(path: string): string {
 }
 
 export function getDirTreesInternal(
-  paths: string[],
   filters: FileFilter[],
+  paths: string[],
 ): DirectoryTree[] {
   const regexStr = filters.map((f) => f.extensions.join("|")).join("|");
 
@@ -116,34 +114,6 @@ export function buildPromiseMenu(
   });
 
   return [p, menu];
-}
-
-export async function loadSavedDirectoryTreesInternal(
-  id: string,
-  ext: string,
-): Promise<DirectoryTree[]> {
-  try {
-    const data = await fs.readFile(
-      path.join(app.getPath("userData"), `${id}.${ext}`),
-      { encoding: "utf-8" },
-    );
-    console.log(data);
-    const sdt = JSON.parse(data) as FilteredPaths;
-
-    return getDirTreesInternal(sdt.paths, sdt.filters);
-  } catch (_) {
-    return Promise.resolve([]);
-  }
-}
-
-export function saveDirectoryTreesInternal(
-  id: string,
-  filteredPaths: FilteredPaths,
-): Promise<void> {
-  const pth = path.join(app.getPath("userData"), `${id}.json`);
-  console.log("Saving trees:", pth, filteredPaths);
-
-  return fs.writeFile(pth, JSON.stringify(filteredPaths));
 }
 
 export async function serveDirectoryTreeInternal(path: string): Promise<void> {
