@@ -111,7 +111,7 @@
   class="relative flex-1 w-full h-0 flex items-center justify-center"
   bind:this={canvasContainer}
 >
-  {#if !processing}
+  {#if processing}
     <div class="absolute flex flex-col items-center gap-2">
       <Reload class="animate-spin" />
       <span class="text-xs">Processing audio data</span>
