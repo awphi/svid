@@ -1,107 +1,87 @@
 <script setup lang="ts">
   import type { DirectoryTree } from "directory-tree";
-  import Icon from "@iconify/svelte";
-  import { client, isSubs } from "./utils";
+  import { ipcClient } from "./utils";
   import { createEventDispatcher } from "svelte";
+  import { ChevronDown, ChevronUp } from "radix-icons-svelte";
 
   export let item: DirectoryTree;
   export let level: number;
-  export let selection: DirectoryTree | undefined;
+  export let selection: DirectoryTree | undefined = undefined;
 
   const dispatch = createEventDispatcher();
+
+  let isOpen = false;
 
   let isFolder: boolean;
   $: isFolder = item.type === "directory";
 
-  let isHidden: boolean;
-  $: isHidden = item.extension === "";
-
   let isSelected: boolean;
   $: isSelected = selection?.path === item.path;
 
-  let isOpen = false;
-
-  let icon: string;
-  $: {
-    if (level === 0) {
-      icon = "bx:folder";
-    } else {
-      if (isFolder) {
-        icon = "bx:subdirectory-right";
-      } else {
-        icon = isSubs(item) ? "bx:file" : "bx:movie";
-      }
-    }
-  }
-
   async function openContextMenu(event: MouseEvent) {
-    if (level !== 0) {
-      return;
-    }
-
-    const res = await client.openContextMenu.query({
-      items: [
-        { label: "Delete from Menu", id: "delete" },
-        { label: "Open in File Explorer", id: "open" },
-      ],
+    const ctxOpts: Parameters<typeof ipcClient.openContextMenu.query>[0] = {
+      items: [{ label: "Open in File Explorer", id: "open" }],
       x: event.x,
       y: event.y,
-    });
+    };
+
+    if (level === 0) {
+      ctxOpts.items.unshift({
+        label: `Delete "${item.name.slice(0, 16)}...`,
+        id: "delete",
+      });
+    }
+
+    const res = await ipcClient.openContextMenu.query(ctxOpts);
     if (res === "delete") {
       dispatch("delete-tree", item);
     } else if (res === "open") {
-      client.showItemInFolder.query({ path: item.path });
+      ipcClient.showItemInFolder.query({ path: item.path });
     }
   }
 </script>
 
-{#if !isHidden}
-  <div
-    class="overflow-x-hidden"
-    class:cursor-pointer={!isFolder}
-    class:cursor-default={isFolder}
-    style={`padding-left: ${level * 10}px`}
-  >
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <button
-      on:click={() => {
-        if (!isFolder) selection = item;
-      }}
-      on:contextmenu={() => {
-        if (isSelected) selection = undefined;
-      }}
-      class="flex items-center rounded-md px-1"
-      class:font-bold={isFolder}
-      class:hover:bg-neutral-700={!isFolder}
-      class:bg-neutral-800={isSelected}
-      class:hover:bg-neutral-800={isSelected}
-    >
-      <Icon class="mr-1 min-w-min" {icon} />
-      <h2 class="whitespace-nowrap text-ellipsis overflow-hidden">
-        {item.name}
-      </h2>
-      {#if isFolder}
-        <div class="flex-1" />
-      {/if}
-      {#if isFolder}
-        <button
-          on:click={() => (isOpen = !isOpen)}
-          on:contextmenu={openContextMenu}
-          class="flex items-center justify-center rounded-md h-5 ml-2 bg-neutral-700 hover:bg-neutral-800 w-auto aspect-square"
-        >
-          <Icon icon="bx:chevron-down" vFlip={isOpen} />
-        </button>
-      {/if}
-    </button>
-    {#if isFolder}
-      <hr class=" border-black opacity-10" />
-      <div class:hidden={!isOpen}>
-        {#if item.children}
-          {#each item.children as child}
-            <svelte:self bind:selection level={level + 1} item={child} />
-          {/each}
+<button
+  style={`margin-left: ${level * 10}px`}
+  on:click={() => {
+    if (!isFolder) {
+      selection = item;
+    } else {
+      isOpen = !isOpen;
+    }
+  }}
+  on:contextmenu={(e) => {
+    if (isFolder) {
+      openContextMenu(e);
+    }
+    if (isSelected) selection = undefined;
+  }}
+  class="flex items-center rounded-md px-1 gap-1 w-full"
+  class:font-bold={isFolder}
+  class:text-purple-500={isSelected}
+  class:hover:text-purple-400={!isFolder && !isSelected}
+>
+  <h2 class="whitespace-nowrap text-ellipsis overflow-hidden">
+    {item.name}
+  </h2>
+  {#if isFolder}
+    {#if isOpen}
+      <ChevronUp />
+    {/if}
+    {#if !isOpen}
+      <ChevronDown />
+    {/if}
+  {/if}
+</button>
+{#if isFolder}
+  <div class:hidden={!isOpen}>
+    {#if item.children && item.children.length > 0}
+      {#each item.children as child}
+        <!-- assert child is not hidden if a file or not empty if a folder before rendering-->
+        {#if (child.extension && child.extension !== "") || (child.children && child.children.length > 0)}
+          <svelte:self bind:selection level={level + 1} item={child} />
         {/if}
-      </div>
+      {/each}
     {/if}
   </div>
 {/if}

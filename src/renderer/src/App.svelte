@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { DirectoryTree } from "directory-tree";
   import type { FileFilter } from "electron";
-  import Icon from "@iconify/svelte";
   import { getVttSubsUrl } from "./lib/utils";
   import prettyMilliseconds from "pretty-ms";
   import VideoPlayer from "./lib/VideoPlayer.svelte";
@@ -45,30 +44,28 @@
     });
 </script>
 
-<div class="h-full w-full flex">
-  <Splitpanes horizontal={false} class="h-full">
+<div class="h-full w-full flex flex-col">
+  <Splitpanes horizontal={false} theme="flex-1">
     <Pane
       bind:size={$preferences.sourceSelectorPaneSize}
-      class=" flex flex-col"
+      class="grid grid-rows-2"
       minSize={20}
     >
       <SourceSelector
         filters={videoFilters}
         bind:selection={selectedVideo}
         trees={videoDirectoryTrees}
-        class="h-1/2 bg-neutral-600"
         title="Videos"
       />
       <SourceSelector
         filters={subsFilters}
         bind:selection={selectedSubs}
         trees={subsDirectoryTrees}
-        class="h-1/2 bg-neutral-600"
         title="Subtitles"
       />
     </Pane>
     <Pane>
-      <Splitpanes horizontal={true}>
+      <Splitpanes theme="" horizontal={true}>
         <Pane>
           <VideoPlayer
             class="bg-black w-full h-full"
@@ -82,35 +79,26 @@
         <Pane
           bind:size={$preferences.visPaneSize}
           minSize={25}
-          class="flex flex-col"
+          class="flex flex-col bg-neutral-800"
         >
           <SubTrack
-            class="border-y-[1px] border-neutral-800"
             {subsUrl}
             pxpersecond={100}
             point={videoPoint}
             bind:offset={subsOffset}
           />
+          <div class="h-[1px] bg-neutral-900 w-full"></div>
           <AudioTrack {selectedVideo} point={videoPoint} pxpersecond={100} />
-          <div
-            class="w-full h-6 flex bg-neutral-700 text-gray-100 text-sm border-neutral-800 border-t-[1px]"
-          >
-            <div class="flex-1 flex h-full items-center">
-              <Icon class="mr-1 ml-1" icon="bx:video" />
-              <h1>{selectedVideo ? selectedVideo.name : ""}</h1>
-            </div>
-            <div class=" w-[1px] mx-1 h-full bg-neutral-800" />
-            <div class="flex-1 flex h-full items-center">
-              <Icon class="mr-1" icon="fluent:subtitles-16-regular" />
-              <h1>{selectedSubs ? selectedSubs.name : ""}</h1>
-              <div class="flex-1" />
-              <h1 class="mr-1">{prettyOffset}</h1>
-            </div>
-          </div>
         </Pane>
       </Splitpanes>
     </Pane>
   </Splitpanes>
+  <div
+    class="w-full flex bg-purple-800 p-0.5 text-sm border-t-[1px] border-neutral-900"
+  >
+    <div class="flex-1"></div>
+    <h1 class="px-1">{prettyOffset}</h1>
+  </div>
 </div>
 
 <style>

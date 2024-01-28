@@ -1,10 +1,10 @@
 <script setup lang="ts">
   import { setCanvasSize } from "./vis-utils";
-  import Icon from "@iconify/svelte";
   import { onDestroy, onMount } from "svelte";
   import type { DirectoryTree } from "directory-tree";
   import WaveformData from "waveform-data";
-  import { client } from "./utils";
+  import { ipcClient } from "./utils";
+  import { Reload } from "radix-icons-svelte";
 
   let canvas: HTMLCanvasElement;
   let canvasContainer: HTMLDivElement;
@@ -14,7 +14,6 @@
 
   export let selectedVideo: DirectoryTree | undefined;
   export let point = 0;
-  export let bgColor = "rgb(82 82 82)";
   export let pxpersecond: number;
 
   $: {
@@ -25,7 +24,7 @@
     } else {
       processing = true;
       abort = false;
-      client.decodeAudioDataFromPath
+      ipcClient.decodeAudioDataFromPath
         .query({ filePath: selectedVideo.path, pxpersecond })
         .then((data) => {
           if (abort) {
@@ -47,8 +46,7 @@
 
     setCanvasSize(canvas, ctx);
 
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (processing || waveform === null) {
       return;
@@ -110,12 +108,12 @@
 </script>
 
 <div
-  class="bg-neutral-600 relative flex-1 w-full h-0 flex items-center justify-center"
+  class="relative flex-1 w-full h-0 flex items-center justify-center"
   bind:this={canvasContainer}
 >
-  {#if processing}
-    <div class="absolute flex flex-col items-center text-neutral-200">
-      <Icon class="w-10 h-10" icon="eos-icons:three-dots-loading" />
+  {#if !processing}
+    <div class="absolute flex flex-col items-center gap-2">
+      <Reload class="animate-spin" />
       <span class="text-xs">Processing audio data</span>
     </div>
   {/if}

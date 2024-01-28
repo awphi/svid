@@ -1,19 +1,23 @@
 <script setup lang="ts">
   import type { DirectoryTree } from "directory-tree";
-  import FolderItem from "./FolderItem.svelte";
+  import FolderItem from "../FolderItem.svelte";
   import type { FileFilter } from "electron";
   import { onMount } from "svelte";
-  import { ipcClient, omit } from "./utils";
+  import { ipcClient, omit } from "$lib/utils";
   import type { Writable } from "svelte/store";
-  import type { Dict } from "./types";
-  import { addToObjectStore, removeFromObjectStore } from "./store";
+  import type { Dict } from "$lib/types";
+  import { addToObjectStore, removeFromObjectStore } from "$lib/utils";
+  import { Button } from "$lib/components/ui/button";
+  import { Plus } from "radix-icons-svelte";
 
   export let title: string;
   export let filters: FileFilter[];
   export let selection: DirectoryTree | undefined = undefined;
   export let trees: Writable<Dict<DirectoryTree>>;
 
-  console.log(title, $trees);
+  let clazz = "";
+  export { clazz as class };
+
   // debounce tree updates
   const refreshDebounceTimers: { [path: string]: number } = Object.create(null);
 
@@ -74,22 +78,18 @@
   }
 </script>
 
-<div class="flex flex-col w-full">
-  <div class="px-2 py-1 flex flex-row items-center bg-neutral-900 shadow-sm">
-    <h2 class="text-2xl font-bold">{title}</h2>
+<div class={"flex flex-col w-full " + clazz}>
+  <div class="px-2 py-1 flex flex-row items-center shadow-sm">
+    <h2>{title}</h2>
     <div class="flex-1" />
-    <button
-      on:click={addButtonClicked}
-      class="b-1 bg-purple-700 hover:bg-purple-800 px-3 py-0.5 rounded-md"
-      >Add</button
+    <Button variant="primary" on:click={addButtonClicked}
+      ><Plus class="mr-1" />Add new</Button
     >
   </div>
 
-  <div
-    id="folders"
-    class="flex flex-col w-full flex-1 overflow-y-scroll bg-neutral-800"
-  >
-    <div class="p-1">
+  <div id="folders" class="flex flex-col w-full flex-1 overflow-y-scroll">
+    <!-- pr-1 to compensate for the width added the scrollbar -->
+    <div class="pl-2 pr-1 py-1">
       {#each Object.values($trees) as tree}
         <FolderItem
           on:delete-tree={(e) => removeFromObjectStore(trees, e.detail.path)}

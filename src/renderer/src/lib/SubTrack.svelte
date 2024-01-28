@@ -18,11 +18,7 @@
   export let subsUrl: string;
   export let pxpersecond: number;
   export let point = 0;
-  export let bgColor = "rgb(82 82 82)";
   export let offset = 0;
-
-  let clazz = "";
-  export { clazz as class };
 
   async function redraw(point: number, offset: number, subs: Subtitle[]) {
     if (canvas === undefined || canvasContainer === undefined) {
@@ -32,9 +28,7 @@
     const ctx = canvas.getContext("2d")!;
 
     setCanvasSize(canvas, ctx);
-
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (subs.length === 0) {
       return;
@@ -108,7 +102,7 @@
 
 <div
   on:wheel={(e) => (offset += e.deltaY / 1000)}
-  class={"bg-neutral-600 block relative flex-1 w-full h-0 " + clazz}
+  class="block relative flex-1 w-full h-0"
   bind:this={canvasContainer}
 >
   <canvas class="h-full w-full" bind:this={canvas} />

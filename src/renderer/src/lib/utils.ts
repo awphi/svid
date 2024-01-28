@@ -4,17 +4,9 @@ import { createTRPCProxyClient } from "@trpc/client";
 import { ipcLink } from "electron-trpc/renderer";
 import type { AppRouter } from "../../../main/trpc-api";
 
-export const client = createTRPCProxyClient<AppRouter>({
+export const ipcClient = createTRPCProxyClient<AppRouter>({
   links: [ipcLink()],
 });
-
-export function isSubs(d: DirectoryTree): boolean {
-  return (
-    d.path.endsWith(".srt") ||
-    d.path.endsWith(".vtt") ||
-    d.path.endsWith(".ass")
-  );
-}
 
 export const BASE_URL = "http://localhost:8901/files";
 
