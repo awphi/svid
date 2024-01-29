@@ -1,9 +1,9 @@
 <script setup lang="ts">
   import { setCanvasSize } from "./vis-utils";
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
   import type { DirectoryTree } from "directory-tree";
   import WaveformData from "waveform-data";
-  import { ipcClient } from "./utils";
+  import { clamp, ipcClient } from "./utils";
   import { Reload } from "radix-icons-svelte";
 
   let canvas: HTMLCanvasElement;
@@ -37,6 +37,13 @@
     }
   }
 
+  function getYFromAmplitude(amplitude: number, padding = 5): number {
+    // We use 16 bit output from audiowaveform so scale within range 2^16
+    const scaledAmplitude = clamp(amplitude / 2 ** 16, -1, 1);
+    const halfHeight = canvas.height / 2;
+    return halfHeight - scaledAmplitude * (halfHeight - padding);
+  }
+
   async function redraw(point: number, waveform: WaveformData | null) {
     if (canvas === undefined || canvasContainer === undefined) {
       return;
@@ -52,20 +59,6 @@
       return;
     }
 
-    const scaleY = (
-      amplitude: number,
-      height: number,
-      pad: number = 0,
-      offset: number = 0,
-    ) => {
-      // We use 16 bit output from audiowaveform so scale within range 2^16 + some padding
-      const range = 2 ** 16 + pad;
-      // Draw in the middle of the canvas considering devicePixelRatio
-      return (
-        height / devicePixelRatio / 2 - ((amplitude + offset) * height) / range
-      );
-    };
-
     const channel = waveform.channel(0);
 
     const startIdx = waveform.at_time(point);
@@ -78,32 +71,32 @@
     for (let x = startIdx; x < endIdx; x++) {
       const val = channel.max_sample(x);
       // Offset our line draws to be positioned with origin at the left edge
-      ctx.lineTo(x - startIdx + 0.5, scaleY(val, canvas.height) + 0.5);
+      ctx.lineTo(x - startIdx, getYFromAmplitude(val));
     }
 
     // Loop backwards, drawing the lower half of the waveform
     for (let x = endIdx - 1; x >= startIdx; x--) {
       const val = channel.min_sample(x);
-      ctx.lineTo(x - startIdx + 0.5, scaleY(val, canvas.height) + 0.5);
+      ctx.lineTo(x - startIdx, getYFromAmplitude(val));
     }
 
     ctx.closePath();
-    ctx.strokeStyle = "white";
-    ctx.fillStyle = "black";
+    ctx.strokeStyle = "rgb(243, 244, 246)";
+    ctx.fillStyle = "#0a0a0a";
     ctx.stroke();
     ctx.fill();
   }
 
   $: redraw(point, waveform);
 
-  const resizeHandler = () => redraw(point, waveform);
   onMount(() => {
-    window.addEventListener("resize", resizeHandler);
+    const resizeObserver = new ResizeObserver(() => redraw(point, waveform));
+    resizeObserver.observe(canvasContainer);
     redraw(point, waveform);
-  });
 
-  onDestroy(() => {
-    window.removeEventListener("resize", resizeHandler);
+    return () => {
+      resizeObserver.disconnect();
+    };
   });
 </script>
 

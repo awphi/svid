@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { clipText, setCanvasSize } from "./vis-utils";
   import { parse } from "@plussub/srt-vtt-parser";
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
 
   interface Subtitle {
     id: string;
@@ -47,10 +47,10 @@
         continue;
       }
 
-      ctx.fillStyle = "black";
+      ctx.fillStyle = "#0a0a0a";
       ctx.fillRect(x, y, w, blockHeight);
 
-      ctx.strokeStyle = "white";
+      ctx.strokeStyle = "rgb(243, 244, 246)";
       ctx.moveTo(x, y);
       ctx.lineTo(x, y + blockHeight);
       ctx.stroke();
@@ -89,14 +89,16 @@
 
   $: redraw(point, offset, subs);
 
-  const resizeHandler = () => redraw(point, offset, subs);
   onMount(() => {
-    window.addEventListener("resize", resizeHandler);
+    const resizeObserver = new ResizeObserver(() =>
+      redraw(point, offset, subs),
+    );
+    resizeObserver.observe(canvasContainer);
     redraw(point, offset, subs);
-  });
 
-  onDestroy(() => {
-    window.removeEventListener("resize", resizeHandler);
+    return () => {
+      resizeObserver.disconnect();
+    };
   });
 </script>
 

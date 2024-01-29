@@ -87,18 +87,16 @@
 
   <div
     id="folders"
-    class="flex flex-col w-full flex-1 overflow-y-scroll bg-neutral-800"
+    class="flex flex-col w-full flex-1 overflow-y-scroll bg-neutral-800 px-2 py-1"
   >
-    <div class="p-1">
-      {#each Object.values($trees) as tree}
-        <FolderItem
-          on:delete-tree={(e) => removeFromObjectStore(trees, e.detail.path)}
-          bind:selection
-          level={0}
-          item={tree}
-        />
-      {/each}
-    </div>
+    {#each Object.values($trees) as tree}
+      <FolderItem
+        on:delete-tree={(e) => removeFromObjectStore(trees, e.detail.path)}
+        bind:selection
+        level={0}
+        item={tree}
+      />
+    {/each}
   </div>
 </div>
 

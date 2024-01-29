@@ -42,7 +42,7 @@
 </script>
 
 <button
-  style={`margin-left: ${level * 10}px`}
+  style={`padding-left: ${level * 10}px`}
   on:click={() => {
     if (!isFolder) {
       selection = item;
@@ -56,7 +56,7 @@
     }
     if (isSelected) selection = undefined;
   }}
-  class="flex items-center rounded-md px-1 gap-1 w-full"
+  class="flex items-center rounded-md gap-1 w-full min-h-fit"
   class:font-bold={isFolder}
   class:text-purple-500={isSelected}
   class:hover:text-purple-400={!isFolder && !isSelected}
