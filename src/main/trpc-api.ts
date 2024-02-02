@@ -9,6 +9,9 @@ import {
   serveDirectoryTreeInternal,
 } from "./api-utils";
 import { observable } from "@trpc/server/observable";
+import { AudioWaveformRecoder } from "./audiowaveform-recoder";
+
+let currentAudioWaveformRecoder: AudioWaveformRecoder | undefined = undefined;
 
 const t = initTRPC.create({ isServer: true });
 
@@ -58,6 +61,34 @@ const decodeAudioDataFromPath = t.procedure
     decodeAudioDataFromPathInternal(req.input.filePath, req.input.pxpersecond),
   );
 
+const prepareAudioWaveformRecoder = t.procedure
+  .input(
+    z.object({
+      filePath: z.string(),
+      pxpersecond: z.number().int().gt(0),
+      maxChunkSize: z.number().gt(0),
+    }),
+  )
+  .query(async ({ input }) => {
+    currentAudioWaveformRecoder = await AudioWaveformRecoder.create(
+      input.filePath,
+      input.maxChunkSize,
+      input.pxpersecond,
+    );
+
+    return currentAudioWaveformRecoder.metadata;
+  });
+
+const getAudioWaveformChunk = t.procedure
+  .input(z.object({ index: z.number().int() }))
+  .query(({ input }) => {
+    if (currentAudioWaveformRecoder === undefined) {
+      return undefined;
+    }
+
+    return currentAudioWaveformRecoder.get(input.index);
+  });
+
 const openContextMenu = t.procedure
   .input(
     z.object({
@@ -104,6 +135,8 @@ export const appRouter = t.router({
   openContextMenu,
   showItemInFolder,
   serveDirectoryTree,
+  prepareAudioWaveformRecoder,
+  getAudioWaveformChunk,
 });
 
 export type AppRouter = typeof appRouter;

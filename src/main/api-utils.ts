@@ -7,28 +7,21 @@ import {
   MenuItem,
   MenuItemConstructorOptions,
   WebContents,
-  app,
 } from "electron";
-import ffmpegPath from "ffmpeg-static";
 import Ffmpeg from "fluent-ffmpeg";
 import { JsonWaveformData } from "waveform-data";
-import { path as audiowaveformPath } from "@audiowaveform-installer/audiowaveform";
 import fs from "fs/promises";
 import { EventEmitter } from "events";
 import { constants as fsConstants } from "fs";
 import express, { type Express } from "express";
 import { pathToFileURL } from "url";
 import cors from "cors";
+import { binaries } from "./audiowaveform-recoder";
 
 export const ee = new EventEmitter();
 export const expressApp: Express = express();
 
 expressApp.use(cors());
-
-export function getBinaryPathInAsar(path: string): string {
-  // Ensure we access the unpacked binaries if app is packaged
-  return app.isPackaged ? path.replace("app.asar", "app.asar.unpacked") : path;
-}
 
 export function getDirTreesInternal(
   filters: FileFilter[],
@@ -53,7 +46,7 @@ export async function decodeAudioDataFromPathInternal(
     let tick = Date.now();
 
     // Spawn the audiowaveform child process
-    const proc = spawn(getBinaryPathInAsar(audiowaveformPath), [
+    const proc = spawn(binaries.audiowaveform, [
       "--input-file",
       "-",
       "--input-format",
@@ -69,7 +62,7 @@ export async function decodeAudioDataFromPathInternal(
 
     // Spawn the ffmpeg command - use wav as its uncompressed so very fast to decode
     Ffmpeg()
-      .setFfmpegPath(getBinaryPathInAsar(ffmpegPath!))
+      .setFfmpegPath(binaries.ffmpeg)
       .input(filePath)
       .audioChannels(1)
       .addOption("-map", "a")

@@ -14,6 +14,7 @@
   } from "./lib/store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
+  const pxpersecond = 100;
   const videoFilters: FileFilter[] = [
     { name: "Select Video", extensions: ["mp4", "mkv"] },
   ];
@@ -83,12 +84,12 @@
         >
           <SubTrack
             {subsUrl}
-            pxpersecond={100}
+            {pxpersecond}
             point={videoPoint}
             bind:offset={subsOffset}
           />
           <div class="h-[1px] bg-neutral-900 w-full"></div>
-          <AudioTrack {selectedVideo} point={videoPoint} pxpersecond={100} />
+          <AudioTrack {selectedVideo} point={videoPoint} {pxpersecond} />
         </Pane>
       </Splitpanes>
     </Pane>

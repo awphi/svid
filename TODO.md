@@ -6,6 +6,8 @@
 - [x] Use `svelte-splitpanes` to make the panels variable size
 - [x] ~~Overhaul look and feel using shadcn, ditching most of the custom tailwind styling~~ Decided not to pursue this as I don't need many components
 - [x] ~~Replace native context menus with HTML-based ones using shadcn + delete from IPC API~~ Maybe this can be pursued later but not necessary for now
-- [ ] Replace `iconify` with some SVGs?
+- [x] Replace `iconify` with some SVGs?
+- [x] Implement chunkified audiowaveform processor
+- [ ] Use chunkified audiowaveform processor in the renderer thread - will need some sort of client-side helper to munge the data together with a minimal API
 - [ ] Try treeview indicators in the source selectors so you can traceback to the route folder
 - [ ] Improve canvas clarity of audio and subs vis
