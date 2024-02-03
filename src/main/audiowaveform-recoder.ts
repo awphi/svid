@@ -81,6 +81,8 @@ function getAudioChunk(
 
 export interface AudioWaveformRecoderMetaData extends Ffmpeg.FfprobeData {
   chunks: number;
+  pxpersecond: number;
+  maxChunkLength: number;
 }
 
 /**
@@ -99,7 +101,12 @@ export class AudioWaveformRecoder {
     private pxpersecond: number,
     meta: Ffmpeg.FfprobeData,
   ) {
-    this.metadata = { ...meta, chunks: chunks.length };
+    this.metadata = {
+      ...meta,
+      chunks: chunks.length,
+      maxChunkLength,
+      pxpersecond,
+    };
   }
 
   static async create(

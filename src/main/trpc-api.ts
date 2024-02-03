@@ -3,7 +3,6 @@ import { dialog, shell } from "electron";
 import { z } from "zod";
 import {
   buildPromiseMenu,
-  decodeAudioDataFromPathInternal,
   ee,
   getDirTreesInternal,
   serveDirectoryTreeInternal,
@@ -52,14 +51,6 @@ const getDirTrees = t.procedure
     }),
   )
   .query((req) => getDirTreesInternal(req.input.filters, req.input.paths));
-
-const decodeAudioDataFromPath = t.procedure
-  .input(
-    z.object({ filePath: z.string(), pxpersecond: z.number().int().gt(0) }),
-  )
-  .query((req) =>
-    decodeAudioDataFromPathInternal(req.input.filePath, req.input.pxpersecond),
-  );
 
 const prepareAudioWaveformRecoder = t.procedure
   .input(
@@ -131,7 +122,6 @@ export const appRouter = t.router({
   sub,
   selectDirectoryTrees,
   getDirTrees,
-  decodeAudioDataFromPath,
   openContextMenu,
   showItemInFolder,
   serveDirectoryTree,

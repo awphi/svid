@@ -2,36 +2,34 @@
   import { setCanvasSize } from "./vis-utils";
   import { onMount } from "svelte";
   import type { DirectoryTree } from "directory-tree";
-  import WaveformData from "waveform-data";
   import { clamp, ipcClient } from "./utils";
   import { Reload } from "radix-icons-svelte";
+  import { MultiWaveform } from "./multi-waveform";
 
   let canvas: HTMLCanvasElement;
   let canvasContainer: HTMLDivElement;
   let processing = false;
-  let waveform: WaveformData | null = null;
-  let abort = false;
+  let waveform: MultiWaveform | null = null;
 
   export let selectedVideo: DirectoryTree | undefined;
   export let point = 0;
   export let pxpersecond: number;
+  export let maxChunkSize: number = 120;
 
   $: {
     if (selectedVideo === undefined) {
       processing = false;
       waveform = null;
-      abort = true;
     } else {
+      let filePath = selectedVideo.path;
       processing = true;
-      abort = false;
-      ipcClient.decodeAudioDataFromPath
-        .query({ filePath: selectedVideo.path, pxpersecond })
+      ipcClient.prepareAudioWaveformRecoder
+        .query({ filePath, pxpersecond, maxChunkSize })
         .then((data) => {
-          if (abort) {
+          if (filePath !== selectedVideo?.path) {
             return;
           }
-          console.log(data);
-          waveform = WaveformData.create(data);
+          waveform = new MultiWaveform(data, redraw);
           processing = false;
         });
     }
@@ -44,39 +42,33 @@
     return halfHeight - scaledAmplitude * (halfHeight - padding);
   }
 
-  async function redraw(point: number, waveform: WaveformData | null) {
-    if (canvas === undefined || canvasContainer === undefined) {
+  async function redraw() {
+    if (
+      canvas === undefined ||
+      canvasContainer === undefined ||
+      processing ||
+      waveform === null
+    ) {
       return;
     }
 
     const ctx = canvas.getContext("2d")!;
-
     setCanvasSize(canvas, ctx);
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (processing || waveform === null) {
-      return;
-    }
-
-    const channel = waveform.channel(0);
-
-    const startIdx = waveform.at_time(point);
-    const endIdx = Math.min(
-      waveform.at_time(point + waveform.seconds_per_pixel * canvas.width),
-      waveform.length,
-    );
+    const startIdx = Math.round(pxpersecond * point);
+    const endIdx = Math.min(startIdx + canvas.width, waveform.pxLength);
 
     // Loop forwards, drawing the upper half of the waveform
     for (let x = startIdx; x < endIdx; x++) {
-      const val = channel.max_sample(x);
+      const val = waveform.sample(x, "max");
       // Offset our line draws to be positioned with origin at the left edge
       ctx.lineTo(x - startIdx, getYFromAmplitude(val));
     }
 
     // Loop backwards, drawing the lower half of the waveform
     for (let x = endIdx - 1; x >= startIdx; x--) {
-      const val = channel.min_sample(x);
+      const val = waveform.sample(x, "min");
       ctx.lineTo(x - startIdx, getYFromAmplitude(val));
     }
 
@@ -87,12 +79,15 @@
     ctx.fill();
   }
 
-  $: redraw(point, waveform);
+  $: {
+    [point, waveform];
+    redraw();
+  }
 
   onMount(() => {
-    const resizeObserver = new ResizeObserver(() => redraw(point, waveform));
+    const resizeObserver = new ResizeObserver(redraw);
     resizeObserver.observe(canvasContainer);
-    redraw(point, waveform);
+    redraw();
 
     return () => {
       resizeObserver.disconnect();
