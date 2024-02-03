@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import type { DirectoryTree } from "directory-tree";
-  import { ipcClient } from "./utils";
+  import { ipcClient } from "../utils";
   import { createEventDispatcher } from "svelte";
   import { ChevronDown, ChevronUp } from "radix-icons-svelte";
 

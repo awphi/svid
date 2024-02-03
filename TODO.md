@@ -8,6 +8,7 @@
 - [x] ~~Replace native context menus with HTML-based ones using shadcn + delete from IPC API~~ Maybe this can be pursued later but not necessary for now
 - [x] Replace `iconify` with some SVGs?
 - [x] Implement chunkified audiowaveform processor
-- [ ] Use chunkified audiowaveform processor in the renderer thread - will need some sort of client-side helper to munge the data together with a minimal API
+- [x] Use chunkified audiowaveform processor in the renderer thread - will need some sort of client-side helper to munge the data together with a minimal API
 - [ ] Try treeview indicators in the source selectors so you can traceback to the route folder
 - [ ] Improve canvas clarity of audio and subs vis
+- [ ] Add an indicator to the status bar to show how many audio waveform chunks are loaded - simple progress bar with percentage should do

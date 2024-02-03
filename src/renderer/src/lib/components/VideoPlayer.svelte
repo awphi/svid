@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import type { DirectoryTree } from "directory-tree";
   import { onMount, onDestroy } from "svelte";
-  import { formatFileUrl } from "./utils";
+  import { formatFileUrl } from "../utils";
 
   let clazz = "";
   export { clazz as class };

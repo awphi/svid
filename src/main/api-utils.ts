@@ -6,13 +6,28 @@ import {
   MenuItem,
   MenuItemConstructorOptions,
   WebContents,
+  app,
 } from "electron";
+import ffmpegPath from "ffmpeg-static";
+import { path as ffprobePath } from "ffprobe-static";
+import { path as audiowaveformPath } from "@audiowaveform-installer/audiowaveform";
 import fs from "fs/promises";
 import { EventEmitter } from "events";
 import { constants as fsConstants } from "fs";
 import express, { type Express } from "express";
 import { pathToFileURL } from "url";
 import cors from "cors";
+
+// Ensure we access the unpacked binaries if app is packaged
+function getBinaryPathInAsar(path: string): string {
+  return app.isPackaged ? path.replace("app.asar", "app.asar.unpacked") : path;
+}
+
+export const binaries = {
+  ffmpeg: getBinaryPathInAsar(ffmpegPath!),
+  ffprobe: getBinaryPathInAsar(ffprobePath),
+  audiowaveform: getBinaryPathInAsar(audiowaveformPath),
+} as const;
 
 export const ee = new EventEmitter();
 export const expressApp: Express = express();

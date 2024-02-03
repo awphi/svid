@@ -3,6 +3,7 @@ import { default as toWebVTT } from "srt-webvtt";
 import { createTRPCProxyClient } from "@trpc/client";
 import { ipcLink } from "electron-trpc/renderer";
 import type { AppRouter } from "../../../main/trpc-api";
+import { get, type Writable } from "svelte/store";
 
 export const ipcClient = createTRPCProxyClient<AppRouter>({
   links: [ipcLink()],
@@ -52,4 +53,41 @@ export function omit<T extends {}>(obj: T, removeBase: keyof T | (keyof T)[]) {
 
 export function clamp(v: number, min: number, max: number): number {
   return Math.max(Math.min(v, max), min);
+}
+
+export function removeFromObjectStore<T extends object, K extends keyof T>(
+  dict: Writable<T>,
+  target: K | K[],
+) {
+  dict.set(omit(get(dict), target));
+}
+
+export function addToObjectStore<T extends object>(
+  dict: Writable<T>,
+  newValues: Partial<T>,
+): void {
+  dict.set(Object.assign(get(dict), newValues));
+}
+
+export function clipText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  suffix = "...",
+) {
+  var metrics = ctx.measureText(text);
+  var suffixMetrics = ctx.measureText(suffix);
+  var textClipped = text;
+  var clipped = false;
+  while (metrics.width > maxWidth && metrics.width > suffixMetrics.width) {
+    textClipped = textClipped.slice(0, -1);
+    metrics = ctx.measureText(textClipped + suffix);
+    clipped = true;
+  }
+
+  if (clipped) {
+    textClipped += suffix;
+  }
+
+  return textClipped;
 }

@@ -3,15 +3,15 @@
   import type { FileFilter } from "electron";
   import { getVttSubsUrl } from "./lib/utils";
   import prettyMilliseconds from "pretty-ms";
-  import VideoPlayer from "./lib/VideoPlayer.svelte";
-  import SourceSelector from "./lib/SourceSelector.svelte";
-  import AudioTrack from "./lib/AudioTrack.svelte";
-  import SubTrack from "./lib/SubTrack.svelte";
+  import VideoPlayer from "./lib/components/VideoPlayer.svelte";
+  import SourceSelector from "./lib/components/SourceSelector.svelte";
+  import AudioTrack from "./lib/components/AudioTrack.svelte";
+  import SubTrack from "./lib/components/SubTrack.svelte";
   import {
     subsDirectoryTrees,
     videoDirectoryTrees,
     preferences,
-  } from "./lib/store";
+  } from "./lib/stores";
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
   const pxpersecond = 100;

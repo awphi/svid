@@ -3,10 +3,14 @@
   import FolderItem from "./FolderItem.svelte";
   import type { FileFilter } from "electron";
   import { onMount } from "svelte";
-  import { ipcClient, omit } from "./utils";
+  import {
+    ipcClient,
+    omit,
+    addToObjectStore,
+    removeFromObjectStore,
+  } from "../utils";
   import type { Writable } from "svelte/store";
-  import type { Dict } from "./types";
-  import { addToObjectStore, removeFromObjectStore } from "./store";
+  import type { Dict } from "../types";
 
   export let title: string;
   export let filters: FileFilter[];

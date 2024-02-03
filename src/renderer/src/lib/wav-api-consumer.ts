@@ -1,36 +1,57 @@
 import WaveformData from "waveform-data";
-import type { AudioWaveformRecoderMetaData } from "../../../main/audiowaveform-recoder";
+import type { AudioWaveformRecoderMetaData } from "../../../main/wav-api";
 import { ipcClient } from "./utils";
 
-/**
- * Uses ipcClient.getAudioWaveformChunk to build a minimal WaveformData API we can use for visualization.
- */
-export class MultiWaveform {
+export class WaveformAPIConsumer {
   private chunks: (WaveformData | undefined)[];
   public readonly pxLength: number;
   private readonly chunkLengthPx: number;
   private loadingChunks: Set<number> = new Set();
+  private destroyed: boolean = false;
 
   constructor(
     public readonly meta: AudioWaveformRecoderMetaData,
     private onLoad: () => void = () => {},
+    eager: boolean = true,
   ) {
     this.chunks = new Array(meta.chunks).fill(undefined);
     this.pxLength = meta.pxpersecond * meta.format.duration!;
     this.chunkLengthPx = this.meta.maxChunkLength * this.meta.pxpersecond;
+    if (eager) {
+      this.eagerlyLoadAll();
+    }
   }
 
   private async load(index: number): Promise<void> {
-    if (this.loadingChunks.has(index) || this.chunks[index] !== undefined) {
+    if (
+      this.loadingChunks.has(index) ||
+      this.chunks[index] !== undefined ||
+      this.destroyed
+    ) {
       return;
     }
 
     this.loadingChunks.add(index);
     await ipcClient.getAudioWaveformChunk.query({ index }).then((data) => {
-      this.chunks[index] = WaveformData.create(data!);
       this.loadingChunks.delete(index);
-      this.onLoad();
+      if (!this.destroyed) {
+        this.chunks[index] = WaveformData.create(data!);
+        this.onLoad();
+      }
     });
+  }
+
+  private async eagerlyLoadAll(): Promise<void> {
+    for (let i = 0; i < this.meta.chunks; i++) {
+      if (this.destroyed) {
+        return;
+      }
+      await this.load(i);
+    }
+  }
+
+  destroy(): void {
+    this.destroyed = true;
   }
 
   sample(px: number, operation: "max" | "min", ch: number = 0): number {

@@ -1,25 +1,36 @@
 <script setup lang="ts">
-  import { setCanvasSize } from "./vis-utils";
-  import { onMount } from "svelte";
+  import { onDestroy } from "svelte";
   import type { DirectoryTree } from "directory-tree";
-  import { clamp, ipcClient } from "./utils";
+  import { clamp, ipcClient } from "../utils";
   import { Reload } from "radix-icons-svelte";
-  import { MultiWaveform } from "./multi-waveform";
+  import { WaveformAPIConsumer } from "../wav-api-consumer";
+  import { AutosizingCanvas } from "../autosizing-canvas";
 
-  let canvas: HTMLCanvasElement;
-  let canvasContainer: HTMLDivElement;
   let processing = false;
-  let waveform: MultiWaveform | null = null;
+  let waveform: WaveformAPIConsumer | undefined;
+  let canvasContainer: HTMLDivElement;
+  let asc: AutosizingCanvas;
+  $: if (canvasContainer) {
+    asc = new AutosizingCanvas(canvasContainer, draw);
+  }
 
   export let selectedVideo: DirectoryTree | undefined;
   export let point = 0;
   export let pxpersecond: number;
   export let maxChunkSize: number = 120;
 
+  // externalized as function to avoid infinite reactivity cycle
+  function destroyWaveform(): void {
+    if (waveform) {
+      waveform.destroy();
+      waveform = undefined;
+    }
+  }
+
   $: {
     if (selectedVideo === undefined) {
       processing = false;
-      waveform = null;
+      destroyWaveform();
     } else {
       let filePath = selectedVideo.path;
       processing = true;
@@ -29,7 +40,7 @@
           if (filePath !== selectedVideo?.path) {
             return;
           }
-          waveform = new MultiWaveform(data, redraw);
+          waveform = new WaveformAPIConsumer(data, draw);
           processing = false;
         });
     }
@@ -38,24 +49,16 @@
   function getYFromAmplitude(amplitude: number, padding = 5): number {
     // We use 16 bit output from audiowaveform so scale within range 2^16
     const scaledAmplitude = clamp(amplitude / 2 ** 16, -1, 1);
-    const halfHeight = canvas.height / 2;
+    const halfHeight = asc.canvas.height / 2;
     return halfHeight - scaledAmplitude * (halfHeight - padding);
   }
 
-  async function redraw() {
-    if (
-      canvas === undefined ||
-      canvasContainer === undefined ||
-      processing ||
-      waveform === null
-    ) {
+  async function draw() {
+    if (asc === undefined || processing || waveform === undefined) {
       return;
     }
 
-    const ctx = canvas.getContext("2d")!;
-    setCanvasSize(canvas, ctx);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+    const { ctx, canvas } = asc;
     const startIdx = Math.round(pxpersecond * point);
     const endIdx = Math.min(startIdx + canvas.width, waveform.pxLength);
 
@@ -79,20 +82,10 @@
     ctx.fill();
   }
 
-  $: {
-    [point, waveform];
-    redraw();
-  }
+  // looks silly but just marks `point` and `waveform` as reactive inputs
+  $: [point, waveform] && asc?.draw();
 
-  onMount(() => {
-    const resizeObserver = new ResizeObserver(redraw);
-    resizeObserver.observe(canvasContainer);
-    redraw();
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  });
+  onDestroy(() => asc.destroy());
 </script>
 
 <div
@@ -105,6 +98,4 @@
       <span class="text-xs">Processing audio data</span>
     </div>
   {/if}
-
-  <canvas class="h-full w-full" bind:this={canvas} />
 </div>

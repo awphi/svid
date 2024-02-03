@@ -1,7 +1,8 @@
 <script setup lang="ts">
-  import { clipText, setCanvasSize } from "./vis-utils";
+  import { clipText } from "../utils";
   import { parse } from "@plussub/srt-vtt-parser";
-  import { onMount } from "svelte";
+  import { onDestroy } from "svelte";
+  import { AutosizingCanvas } from "../autosizing-canvas";
 
   interface Subtitle {
     id: string;
@@ -10,29 +11,25 @@
     text: string;
   }
 
-  const blockHeight = 20;
-  let canvas: HTMLCanvasElement;
-  let canvasContainer: HTMLDivElement;
-  let subs: Subtitle[] = [];
-
+  export let blockHeight: number = 20;
   export let subsUrl: string;
   export let pxpersecond: number;
-  export let point = 0;
-  export let offset = 0;
+  export let point: number = 0;
+  export let offset: number = 0;
 
-  async function redraw(point: number, offset: number, subs: Subtitle[]) {
-    if (canvas === undefined || canvasContainer === undefined) {
-      return;
-    }
+  let subs: Subtitle[] = [];
+  let canvasContainer: HTMLDivElement;
+  let asc: AutosizingCanvas;
+  $: if (canvasContainer) {
+    asc = new AutosizingCanvas(canvasContainer, draw);
+  }
 
-    const ctx = canvas.getContext("2d")!;
-
-    setCanvasSize(canvas, ctx);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+  async function draw() {
     if (subs.length === 0) {
       return;
     }
+
+    const { canvas, ctx } = asc;
 
     for (var i = 0; i < subs.length; i++) {
       const sub = subs[i];
@@ -87,25 +84,13 @@
     }
   }
 
-  $: redraw(point, offset, subs);
+  $: [point, offset, subs] && asc?.draw();
 
-  onMount(() => {
-    const resizeObserver = new ResizeObserver(() =>
-      redraw(point, offset, subs),
-    );
-    resizeObserver.observe(canvasContainer);
-    redraw(point, offset, subs);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  });
+  onDestroy(() => asc.destroy());
 </script>
 
 <div
   on:wheel={(e) => (offset += e.deltaY / 1000)}
   class="block relative flex-1 w-full h-0"
   bind:this={canvasContainer}
->
-  <canvas class="h-full w-full" bind:this={canvas} />
-</div>
+></div>

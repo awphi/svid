@@ -15,3 +15,27 @@ body,
   min-width: 0;
   min-height: 0;
 }
+
+/* Styling for svelte-splitpanes to fit our color palette */
+.splitpanes__splitter {
+  position: relative;
+  @apply bg-neutral-900;
+}
+
+.splitpanes__splitter:before {
+  content: "";
+  transition: opacity 0.2s;
+  @apply bg-purple-700 bg-opacity-10 opacity-0 z-10 left-0 top-0 absolute hover:opacity-100;
+}
+
+.splitpanes--vertical > .splitpanes__splitter:before {
+  left: -2px;
+  right: -2px;
+  @apply h-full hover:cursor-e-resize;
+}
+
+.splitpanes--horizontal > .splitpanes__splitter:before {
+  top: -2px;
+  bottom: -2px;
+  @apply w-full hover:cursor-n-resize;
+}

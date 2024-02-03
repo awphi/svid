@@ -1,21 +1,7 @@
 import type { JsonWaveformData } from "waveform-data";
-import ffmpegPath from "ffmpeg-static";
-import { path as ffprobePath } from "ffprobe-static";
-import { path as audiowaveformPath } from "@audiowaveform-installer/audiowaveform";
-import { app } from "electron";
 import Ffmpeg from "fluent-ffmpeg";
 import { spawn } from "child_process";
-
-// Ensure we access the unpacked binaries if app is packaged
-function getBinaryPathInAsar(path: string): string {
-  return app.isPackaged ? path.replace("app.asar", "app.asar.unpacked") : path;
-}
-
-export const binaries = {
-  ffmpeg: getBinaryPathInAsar(ffmpegPath!),
-  ffprobe: getBinaryPathInAsar(ffprobePath),
-  audiowaveform: getBinaryPathInAsar(audiowaveformPath),
-} as const;
+import { binaries } from "./api-utils";
 
 function getVideoMetadata(path: string): Promise<Ffmpeg.FfprobeData> {
   return new Promise((res, rej) => {
@@ -72,7 +58,10 @@ function getAudioChunk(
     const bufs: Buffer[] = [];
     proc.stdout.on("data", (b: Buffer) => bufs.push(b));
     proc.on("exit", async () => {
-      console.log("waveform done in", Date.now() - tick);
+      console.log(
+        `${path}@${startTime}-${startTime + duration} waveform done in`,
+        Date.now() - tick,
+      );
       const json = JSON.parse(Buffer.concat(bufs).toString("utf-8"));
       res(json);
     });
@@ -91,7 +80,7 @@ export interface AudioWaveformRecoderMetaData extends Ffmpeg.FfprobeData {
  * to fetch them. These will either be retrieved from the cache or generated on the fly.
  * Also allows for pre-caching of the next missing chunk.
  */
-export class AudioWaveformRecoder {
+export class WaveformAPI {
   public readonly metadata: AudioWaveformRecoderMetaData;
 
   private constructor(
@@ -113,7 +102,7 @@ export class AudioWaveformRecoder {
     path: string,
     maxChunkLength: number,
     pxpersecond: number,
-  ): Promise<AudioWaveformRecoder> {
+  ): Promise<WaveformAPI> {
     const meta = await getVideoMetadata(path);
     const duration = Math.ceil(meta.format.duration ?? 0);
     if (duration < 0) {
@@ -124,13 +113,7 @@ export class AudioWaveformRecoder {
     ).fill(undefined);
     console.log(`Chunk length: ${maxChunkLength}. Chunks: ${chunks.length}`);
 
-    return new AudioWaveformRecoder(
-      path,
-      maxChunkLength,
-      chunks,
-      pxpersecond,
-      meta,
-    );
+    return new WaveformAPI(path, maxChunkLength, chunks, pxpersecond, meta);
   }
 
   async get(index: number): Promise<JsonWaveformData | undefined> {
