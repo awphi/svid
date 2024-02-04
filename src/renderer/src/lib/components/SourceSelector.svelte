@@ -17,20 +17,21 @@
   export let selection: DirectoryTree | undefined = undefined;
   export let trees: Writable<Dict<DirectoryTree>>;
 
-  console.log(title, $trees);
   // debounce tree updates
   const refreshDebounceTimers: { [path: string]: number } = Object.create(null);
 
-  function serveTrees(): void {
+  async function serveTrees(): Promise<void> {
     let erroredPaths: string[] = [];
-    for (const path of Object.keys($trees)) {
+    const p = Object.keys($trees).map(async (path) => {
       try {
-        ipcClient.serveDirectoryTree.query({ path });
+        return await ipcClient.serveDirectoryTree.query({ path });
       } catch (e) {
         console.error(`Failed to load path ${path}`, e);
         erroredPaths.push(path);
       }
-    }
+    });
+
+    await Promise.all(p);
     trees.set(omit($trees, erroredPaths));
   }
 
@@ -56,10 +57,14 @@
   onMount(() => {
     serveTrees();
 
-    ipcClient.sub.subscribe("treeChanged", {
+    const changeSubscriber = ipcClient.sub.subscribe("treeChanged", {
       // TODO make more typesafe
       onData: (data) => updateTreeFromDisk(data as string),
     });
+
+    return () => {
+      changeSubscriber.unsubscribe();
+    };
   });
 
   async function addButtonClicked() {
@@ -90,13 +95,13 @@
   </div>
 
   <div
-    id="folders"
     class="flex flex-col w-full flex-1 overflow-y-scroll bg-neutral-800 px-2 py-1"
   >
     {#each Object.values($trees) as tree}
       <FolderItem
         on:delete-tree={(e) => removeFromObjectStore(trees, e.detail.path)}
-        bind:selection
+        on:select-tree={(e) => (selection = e.detail)}
+        {selection}
         level={0}
         item={tree}
       />

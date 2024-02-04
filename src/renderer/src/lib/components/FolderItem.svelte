@@ -3,6 +3,7 @@
   import { ipcClient } from "../utils";
   import { createEventDispatcher } from "svelte";
   import { ChevronDown, ChevronUp } from "radix-icons-svelte";
+  import { slide } from "svelte/transition";
 
   export let item: DirectoryTree;
   export let level: number;
@@ -18,7 +19,19 @@
   let isSelected: boolean;
   $: isSelected = selection?.path === item.path;
 
-  async function openContextMenu(event: MouseEvent) {
+  const onClick = () => {
+    if (!isFolder) {
+      dispatch("select-tree", item);
+    } else {
+      isOpen = !isOpen;
+    }
+  };
+
+  const onContextMenu = async (event: MouseEvent) => {
+    if (!isFolder) {
+      return;
+    }
+
     const ctxOpts: Parameters<typeof ipcClient.openContextMenu.query>[0] = {
       items: [{ label: "Open in File Explorer", id: "open" }],
       x: event.x,
@@ -38,28 +51,16 @@
     } else if (res === "open") {
       ipcClient.showItemInFolder.query({ path: item.path });
     }
-  }
+  };
 </script>
 
 <button
-  style={`padding-left: ${level * 10}px`}
-  on:click={() => {
-    if (!isFolder) {
-      selection = item;
-    } else {
-      isOpen = !isOpen;
-    }
-  }}
-  on:contextmenu={(e) => {
-    if (isFolder) {
-      openContextMenu(e);
-    }
-    if (isSelected) selection = undefined;
-  }}
-  class="flex items-center rounded-md gap-1 w-full min-h-fit"
+  class="flex items-center gap-1 min-h-fit w-full"
   class:font-bold={isFolder}
   class:text-purple-500={isSelected}
   class:hover:text-purple-400={!isFolder && !isSelected}
+  on:click={onClick}
+  on:contextmenu={onContextMenu}
 >
   <h2 class="whitespace-nowrap text-ellipsis overflow-hidden">
     {item.name}
@@ -73,15 +74,18 @@
     {/if}
   {/if}
 </button>
-{#if isFolder}
-  <div class:hidden={!isOpen}>
-    {#if item.children && item.children.length > 0}
-      {#each item.children as child}
-        <!-- assert child is not hidden if a file or not empty if a folder before rendering-->
-        {#if (child.extension && child.extension !== "") || (child.children && child.children.length > 0)}
-          <svelte:self bind:selection level={level + 1} item={child} />
-        {/if}
-      {/each}
-    {/if}
+{#if isOpen && isFolder && item.children && item.children.length > 0}
+  <div class="ml-3" transition:slide={{ duration: 200 }}>
+    {#each item.children as child}
+      <!-- assert child is not hidden if a file or not empty if a folder before rendering-->
+      {#if (child.extension && child.extension !== "") || (child.children && child.children.length > 0)}
+        <svelte:self
+          on:select-tree={(e) => dispatch("select-tree", e.detail)}
+          {selection}
+          level={level + 1}
+          item={child}
+        />
+      {/if}
+    {/each}
   </div>
 {/if}

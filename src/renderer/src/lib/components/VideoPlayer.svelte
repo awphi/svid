@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import type { DirectoryTree } from "directory-tree";
-  import { onMount, onDestroy } from "svelte";
+  import { onMount } from "svelte";
   import { formatFileUrl } from "../utils";
 
   let clazz = "";
@@ -23,10 +23,10 @@
         lastAppliedOffset = offset;
       }
     }, 100);
-  });
 
-  onDestroy(() => {
-    window.clearInterval(offsetUpdateInterval);
+    return () => {
+      window.clearInterval(offsetUpdateInterval);
+    };
   });
 
   async function applyOffset(off: number) {
