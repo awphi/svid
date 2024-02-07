@@ -2,6 +2,12 @@ import WaveformData from "waveform-data";
 import type { AudioWaveformRecoderMetaData } from "../../../main/wav-api";
 import { ipcClient } from "./utils";
 
+export interface WaveformAPIConsumerInfo {
+  loadedChunks: number;
+  totalChunks: number;
+  loadingChunks: number;
+}
+
 export class WaveformAPIConsumer {
   private chunks: (WaveformData | undefined)[];
   public readonly pxLength: number;
@@ -66,5 +72,13 @@ export class WaveformAPIConsumer {
     const index = px - chunkIndex * this.chunkLengthPx;
     const channel = waveform.channel(ch);
     return channel[`${operation}_sample`](index);
+  }
+
+  info(): WaveformAPIConsumerInfo {
+    return {
+      loadedChunks: this.chunks.filter((a) => a !== undefined).length,
+      totalChunks: this.chunks.length,
+      loadingChunks: this.loadingChunks.size,
+    };
   }
 }

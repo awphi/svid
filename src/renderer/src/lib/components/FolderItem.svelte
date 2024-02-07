@@ -2,7 +2,7 @@
   import type { DirectoryTree } from "directory-tree";
   import { ipcClient } from "../utils";
   import { createEventDispatcher } from "svelte";
-  import { ChevronDown, ChevronUp } from "radix-icons-svelte";
+  import { CaretDown } from "phosphor-svelte";
   import { slide } from "svelte/transition";
 
   export let item: DirectoryTree;
@@ -66,12 +66,7 @@
     {item.name}
   </h2>
   {#if isFolder}
-    {#if isOpen}
-      <ChevronUp />
-    {/if}
-    {#if !isOpen}
-      <ChevronDown />
-    {/if}
+    <CaretDown class="{isOpen ? '-rotate-180' : ''} transition-all" />
   {/if}
 </button>
 {#if isOpen && isFolder && item.children && item.children.length > 0}

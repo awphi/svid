@@ -2,9 +2,10 @@
   import { onDestroy } from "svelte";
   import type { DirectoryTree } from "directory-tree";
   import { clamp, ipcClient } from "../utils";
-  import { Reload } from "radix-icons-svelte";
+  import { ArrowClockwise } from "phosphor-svelte";
   import { WaveformAPIConsumer } from "../wav-api-consumer";
   import { AutosizingCanvas } from "../autosizing-canvas";
+  import { waveformInfo } from "../stores";
 
   let processing = false;
   let waveform: WaveformAPIConsumer | undefined;
@@ -27,6 +28,13 @@
     }
   }
 
+  function onWaveformChunkLoad(): void {
+    draw();
+    if (waveform) {
+      waveformInfo.set(waveform.info());
+    }
+  }
+
   $: {
     if (selectedVideo === undefined) {
       processing = false;
@@ -40,7 +48,7 @@
           if (filePath !== selectedVideo?.path) {
             return;
           }
-          waveform = new WaveformAPIConsumer(data, draw);
+          waveform = new WaveformAPIConsumer(data, onWaveformChunkLoad);
           processing = false;
         });
     }
@@ -94,7 +102,7 @@
 >
   {#if processing}
     <div class="absolute flex flex-col items-center gap-2">
-      <Reload class="animate-spin" />
+      <ArrowClockwise class="animate-spin" />
       <span class="text-xs">Processing audio data</span>
     </div>
   {/if}

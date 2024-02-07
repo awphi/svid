@@ -2,7 +2,6 @@
   import type { DirectoryTree } from "directory-tree";
   import type { FileFilter } from "electron";
   import { getVttSubsUrl } from "./lib/utils";
-  import prettyMilliseconds from "pretty-ms";
   import VideoPlayer from "./lib/components/VideoPlayer.svelte";
   import SourceSelector from "./lib/components/SourceSelector.svelte";
   import AudioTrack from "./lib/components/AudioTrack.svelte";
@@ -13,6 +12,7 @@
     preferences,
   } from "./lib/stores";
   import { Pane, Splitpanes } from "svelte-splitpanes";
+  import StatusBar from "./lib/components/StatusBar.svelte";
 
   const pxpersecond = 100;
   const videoFilters: FileFilter[] = [
@@ -36,13 +36,6 @@
       subsUrl = "";
     }
   }
-
-  let prettyOffset: string = "";
-  $: prettyOffset =
-    (subsOffset >= 0 ? "+" : "-") +
-    prettyMilliseconds(Math.abs(subsOffset) * 1000, {
-      secondsDecimalDigits: 2,
-    });
 </script>
 
 <div class="h-full w-full flex flex-col">
@@ -94,12 +87,7 @@
       </Splitpanes>
     </Pane>
   </Splitpanes>
-  <div
-    class="w-full flex bg-purple-800 p-0.5 text-sm border-t-[1px] border-neutral-900"
-  >
-    <div class="flex-1"></div>
-    <h1 class="px-1">{prettyOffset}</h1>
-  </div>
+  <StatusBar {subsOffset} />
 </div>
 
 <style>
