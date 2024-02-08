@@ -4,6 +4,7 @@ import { createTRPCProxyClient } from "@trpc/client";
 import { ipcLink } from "electron-trpc/renderer";
 import type { AppRouter } from "../../../main/trpc-api";
 import { get, type Writable } from "svelte/store";
+import type { Range, Subtitle, SubtitleGroup } from "./types";
 
 export const ipcClient = createTRPCProxyClient<AppRouter>({
   links: [ipcLink()],
@@ -90,4 +91,68 @@ export function clipText(
   }
 
   return textClipped;
+}
+
+function initSubtitleGroup(sub: Subtitle): SubtitleGroup {
+  return { ...sub, contents: [sub] };
+}
+
+function groupSubtitles(subs: Subtitle[]): SubtitleGroup[] {
+  // Sort ranges by their start value
+  subs.sort((a, b) => a.start - b.start);
+
+  const subGroups: SubtitleGroup[] = [];
+  let currentSub = initSubtitleGroup(subs[0]);
+
+  for (let i = 1; i < subs.length; i++) {
+    const nextSub = subs[i];
+    // Check if the current range overlaps with the next range
+    if (currentSub.end >= nextSub.start) {
+      // Merge the two ranges
+      currentSub.end = Math.max(currentSub.end, nextSub.end);
+      currentSub.contents.push(nextSub);
+    } else {
+      // No overlap, push the current range to mergedRanges and update currentRange
+      subGroups.push(currentSub);
+      currentSub = initSubtitleGroup(nextSub);
+    }
+  }
+
+  subGroups.push(currentSub);
+
+  return subGroups;
+}
+
+/**
+ * Finds distinct groups of overlapping subtitles and assigns each one a `row` property such that they do not overlap
+ * with the minimum amount of rows possible.
+ */
+export function assignRows(subs: Subtitle[]): number {
+  const groups = groupSubtitles(subs);
+  let maxRows = 1;
+  for (const { contents } of groups) {
+    const rows: Subtitle[][] = [];
+
+    contents.forEach((sub) => {
+      let placed = false;
+      // Try to place the range in an existing row
+      for (let i = 0; i < rows.length && !placed; i++) {
+        if (rows[i][rows[i].length - 1].end < sub.start) {
+          // No overlap, place the range in this row
+          sub.row = i;
+          rows[i].push(sub);
+          placed = true;
+        }
+      }
+      // If the range wasn't placed in any row, add a new row
+      if (!placed) {
+        rows.push([sub]);
+        sub.row = rows.length - 1;
+      }
+    });
+
+    maxRows = Math.max(maxRows, rows.length);
+  }
+
+  return maxRows;
 }
